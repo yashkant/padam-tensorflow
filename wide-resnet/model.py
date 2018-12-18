@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function
-
 import tensorflow as tf
-
+import os
+import sys
+os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
 tf.enable_eager_execution()
 
 # Fetch and format the mnist data
