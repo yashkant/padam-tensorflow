@@ -3,7 +3,6 @@ import tensorflow as tf
 import os
 import sys
 import numpy as np
-import sklearn.metrics as metrics
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
