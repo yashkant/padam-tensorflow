@@ -72,10 +72,10 @@ tempY = testY
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
-generator = ImageDataGenerator(rotation_range=10,
-                               width_shift_range=5./32,
-                               height_shift_range=5./32,
-                               horizontal_flip=True)
+generator = ImageDataGenerator(rotation_range=0,
+                               width_shift_range=0./32,
+                               height_shift_range=0./32,
+                               horizontal_flip=False)
 
 generator.fit(trainX, seed=0, augment=True)
 
