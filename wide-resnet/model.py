@@ -3,7 +3,6 @@ import tensorflow as tf
 import os
 import sys
 import numpy as np
-import sklearn.metrics as metrics
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
@@ -31,10 +30,10 @@ tempY = testY
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
-generator = ImageDataGenerator(rotation_range=10,
-                               width_shift_range=5./32,
-                               height_shift_range=5./32,
-                               horizontal_flip=True)
+generator = ImageDataGenerator(rotation_range=0,
+                               width_shift_range=0./32,
+                               height_shift_range=0./32,
+                               horizontal_flip=False)
 
 generator.fit(trainX, seed=0, augment=True)
 
