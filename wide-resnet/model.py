@@ -8,7 +8,7 @@ import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
-from keras_contrib.applications import wide_resnet
+from wide_resnet import WRNModel
 
 from keras import backend as K
 os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
@@ -43,7 +43,7 @@ init_shape = (3, 32, 32) if K.image_dim_ordering() == 'th' else (32, 32, 3)
 # For WRN-28-10 put N = 4, k = 10
 # For WRN-40-4 put N = 6, k = 4
 
-model = wide_resnet.WideResidualNetwork(weights = None)
+model = wide_resnet.WideResidualNetwork()
 model.summary()
 plot_model(model, "WRN-28-8.png", show_shapes=False)
 

@@ -31,10 +31,10 @@ TF_WEIGHTS_PATH_NO_TOP = 'https://github.com/titu1994/Wide-Residual-Networks/rel
 
 
 
-class WRNModel(tf.keras.Model):
+class WRNModel(Model):
 
     def __init__(self, depth=28, width=8, dropout_rate=0.0,
-                        include_top=True, weights='cifar10',
+                        include_top=True,
                         input_tensor=None, input_shape=None,
                         classes=10, activation='softmax'):
         super(WRNModel, self).__init__()
@@ -43,17 +43,8 @@ class WRNModel(tf.keras.Model):
         self.width = width
         self.dropout_rate = dropout_rate
         self.include_top = include_top
-        self.weights = weights
         self.input_tensor = input_tensor
         
-        if weights not in {'cifar10', None}:
-            raise ValueError('The `weights` argument should be either '
-                             '`None` (random initialization) or `cifar10` '
-                             '(pre-training on CIFAR-10).')
-
-        if weights == 'cifar10' and include_top and classes != 10:
-            raise ValueError('If using `weights` as CIFAR 10 with `include_top`'
-                             ' as true, `classes` should be 10')
 
         if (depth - 4) % 6 != 0:
             raise ValueError('Depth of the network must be such that (depth - 4)'
@@ -72,7 +63,7 @@ class WRNModel(tf.keras.Model):
             temp_paths = []
             for i_path in range(0, len(self.model[i_blk])):
                 path_output = blk_output
-                for lyr in range(0, len(i_path)):t
+                for lyr in range(0, len(i_path)):
                     path_output = lyr(path_output)
                 temp_path.append(path_output)
             blk_output = add(temp_paths) 
