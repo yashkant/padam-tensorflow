@@ -59,99 +59,116 @@ class WRNModel(tf.keras.Model):
             raise ValueError('Depth of the network must be such that (depth - 4)'
                              'should be divisible by 6.')
 
+        self.model = __create_wide_residual_network(classes, include_top, depth, width,
+                                           dropout_rate, activation)
+
+
+    def call(self, input):
+        """Execute the model"""
+
+        blk_output = input 
+
+        for i_blk in range(0, len(self.model)):
+            temp_paths = []
+            for i_path in range(0, len(self.model[i_blk])):
+                path_output = blk_output
+                for lyr in range(0, len(i_path)):t
+                    path_output = lyr(path_output)
+                temp_path.append(path_output)
+            blk_output = add(temp_paths) 
+
+        return blk_output
 
 
 
 
 
 
-def WideResidualNetwork(depth=28, width=8, dropout_rate=0.0,
-                        include_top=True, weights='cifar10',
-                        input_tensor=None, input_shape=None,
-                        classes=10, activation='softmax'):
-    """Instantiate the Wide Residual Network architecture,
-        optionally loading weights pre-trained
-        on CIFAR-10. Note that when using TensorFlow,
-        for best performance you should set
-        `image_dim_ordering="tf"` in your Keras config
-        at ~/.keras/keras.json.
+# def WideResidualNetwork(depth=28, width=8, dropout_rate=0.0,
+#                         include_top=True, weights='cifar10',
+#                         input_tensor=None, input_shape=None,
+#                         classes=10, activation='softmax'):
+#     """Instantiate the Wide Residual Network architecture,
+#         optionally loading weights pre-trained
+#         on CIFAR-10. Note that when using TensorFlow,
+#         for best performance you should set
+#         `image_dim_ordering="tf"` in your Keras config
+#         at ~/.keras/keras.json.
 
-        The model and the weights are compatible with both
-        TensorFlow and Theano. The dimension ordering
-        convention used by the model is the one
-        specified in your Keras config file.
+#         The model and the weights are compatible with both
+#         TensorFlow and Theano. The dimension ordering
+#         convention used by the model is the one
+#         specified in your Keras config file.
 
-        # Arguments
-            depth: number or layers in the DenseNet
-            width: multiplier to the ResNet width (number of filters)
-            dropout_rate: dropout rate
-            include_top: whether to include the fully-connected
-                layer at the top of the network.
-            weights: one of `None` (random initialization) or
-                "cifar10" (pre-training on CIFAR-10)..
-            input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image input for the model.
-            input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input shape
-                has to be `(32, 32, 3)` (with `tf` dim ordering)
-                or `(3, 32, 32)` (with `th` dim ordering).
-                It should have exactly 3 inputs channels,
-                and width and height should be no smaller than 8.
-                E.g. `(200, 200, 3)` would be one valid value.
-            classes: optional number of classes to classify images
-                into, only to be specified if `include_top` is True, and
-                if no `weights` argument is specified.
+#         # Arguments
+#             depth: number or layers in the DenseNet
+#             width: multiplier to the ResNet width (number of filters)
+#             dropout_rate: dropout rate
+#             include_top: whether to include the fully-connected
+#                 layer at the top of the network.
+#             weights: one of `None` (random initialization) or
+#                 "cifar10" (pre-training on CIFAR-10)..
+#             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+#                 to use as image input for the model.
+#             input_shape: optional shape tuple, only to be specified
+#                 if `include_top` is False (otherwise the input shape
+#                 has to be `(32, 32, 3)` (with `tf` dim ordering)
+#                 or `(3, 32, 32)` (with `th` dim ordering).
+#                 It should have exactly 3 inputs channels,
+#                 and width and height should be no smaller than 8.
+#                 E.g. `(200, 200, 3)` would be one valid value.
+#             classes: optional number of classes to classify images
+#                 into, only to be specified if `include_top` is True, and
+#                 if no `weights` argument is specified.
 
-        # Returns
-            A Keras model instance.
-        """
+#         # Returns
+#             A Keras model instance.
+#         """
 
-    if weights not in {'cifar10', None}:
-        raise ValueError('The `weights` argument should be either '
-                         '`None` (random initialization) or `cifar10` '
-                         '(pre-training on CIFAR-10).')
+#     if weights not in {'cifar10', None}:
+#         raise ValueError('The `weights` argument should be either '
+#                          '`None` (random initialization) or `cifar10` '
+#                          '(pre-training on CIFAR-10).')
 
-    if weights == 'cifar10' and include_top and classes != 10:
-        raise ValueError('If using `weights` as CIFAR 10 with `include_top`'
-                         ' as true, `classes` should be 10')
+#     if weights == 'cifar10' and include_top and classes != 10:
+#         raise ValueError('If using `weights` as CIFAR 10 with `include_top`'
+#                          ' as true, `classes` should be 10')
 
-    if (depth - 4) % 6 != 0:
-        raise ValueError('Depth of the network must be such that (depth - 4)'
-                         'should be divisible by 6.')
+#     if (depth - 4) % 6 != 0:
+#         raise ValueError('Depth of the network must be such that (depth - 4)'
+#                          'should be divisible by 6.')
 
-    # # Determine proper input shape
-    # input_shape = _obtain_input_shape(input_shape,
-    #                                   default_size=32,
-    #                                   min_size=8,
-    #                                   data_format=K.image_dim_ordering(),
-    #                                   require_flatten=include_top)
+#     # # Determine proper input shape
+#     # input_shape = _obtain_input_shape(input_shape,
+#     #                                   default_size=32,
+#     #                                   min_size=8,
+#     #                                   data_format=K.image_dim_ordering(),
+#     #                                   require_flatten=include_top)
 
-    # if input_tensor is None:
-    #     img_input = Input(shape=input_shape)
-    # else:
-    #     if not K.is_keras_tensor(input_tensor):
-    #         img_input = Input(tensor=input_tensor, shape=input_shape)
-    #     else:
-    #         img_input = input_tensor
+#     # if input_tensor is None:
+#     #     img_input = Input(shape=input_shape)
+#     # else:
+#     #     if not K.is_keras_tensor(input_tensor):
+#     #         img_input = Input(tensor=input_tensor, shape=input_shape)
+#     #     else:
+#     #         img_input = input_tensor
 
-    x = __create_wide_residual_network(classes, include_top, depth, width,
-                                       dropout_rate, activation)
 
-    print(x)
+#     print(x)
 
-    # Ensure that the model takes into account
-    # any potential predecessors of `input_tensor`.
-    if input_tensor is not None:
-        inputs = get_source_inputs(input_tensor)
-    else:
-        inputs = img_input
+#     # Ensure that the model takes into account
+#     # any potential predecessors of `input_tensor`.
+#     if input_tensor is not None:
+#         inputs = get_source_inputs(input_tensor)
+#     else:
+#         inputs = img_input
     
-    # Create model.
-    # model = Model(inputs, x, name='wide-resnet')
+#     # Create model.
+#     # model = Model(inputs, x, name='wide-resnet')
 
-    # load weights
+#     # load weights
 
-    return model
+#     return model
 
 
 def __conv1_block():
@@ -165,7 +182,7 @@ def __conv1_block():
     model.append(Activation('relu'))
     # x = BatchNormalization(axis=channel_axis)(x)
     # x = Activation('relu')(x) 
-    return out_channels, model
+    return out_channels, [model]
 
 
 def __conv2_block(input_channels, k=1, dropout=0.0):
@@ -253,7 +270,12 @@ def ___conv4_block(input_channels, k=1, dropout=0.0):
 
 def __create_wide_residual_network(nb_classes, include_top, depth=28,
                                    width=8, dropout=0.0, activation='softmax'):
-    ''' Creates a Wide Residual Network with specified parameters
+    ''' 
+
+    Creates a Wide Residual Network model and stores it to an array and returns it.
+    Each element in the array is a block that constitutes a single block of the 
+    network. Inside each block we there are non-zero paths that we sum at last 
+    to build this block. 
 
     Args:
         nb_classes: Number of output classes
@@ -282,7 +304,7 @@ def __create_wide_residual_network(nb_classes, include_top, depth=28,
         model.append(blk)
         nb_conv += 2
 
-    model.append([MaxPooling2D((2, 2))])
+    model.append([[MaxPooling2D((2, 2))]])
 
     # x = MaxPooling2D((2, 2))(x)
 
@@ -291,7 +313,7 @@ def __create_wide_residual_network(nb_classes, include_top, depth=28,
         model.append(blk)
         nb_conv += 2
 
-    model.append([MaxPooling2D((2, 2))])
+    model.append([[MaxPooling2D((2, 2))]])
     # x = MaxPooling2D((2, 2))(x)
 
 
@@ -301,7 +323,7 @@ def __create_wide_residual_network(nb_classes, include_top, depth=28,
         nb_conv += 2
 
     if include_top:
-        model.append([GlobalAveragePooling2D(), Dense(nb_classes, activation=activation)])
+        model.append([[GlobalAveragePooling2D(), Dense(nb_classes, activation=activation)]])
         # x = GlobalAveragePooling2D()(x)
         # x = Dense(nb_classes, activation=activation)(x)
 
