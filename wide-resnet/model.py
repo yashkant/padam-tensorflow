@@ -27,7 +27,6 @@ trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
 testX = testX.astype('float32')
 testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 
-# tempY = testY
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
@@ -36,21 +35,7 @@ trainY = tf.one_hot(trainY, depth=10).numpy()
 
 testY = testY.astype(np.int64)
 testX = testX.astype(np.int64)
-# print(type(testY))
-# print(trainY)
 
-
-# generator = ImageDataGenerator(rotation_range=0,
-#                                width_shift_range=0./32,
-#                                height_shift_range=0./32,
-#                                horizontal_flip=False)
-
-# generator.fit(trainX, seed=0, augment=True)
-
-
-# For WRN-16-8 put N = 2, k = 8
-# For WRN-28-10 put N = 4, k = 10
-# For WRN-40-4 put N = 6, k = 4
 
 model = WRNModel()
 
@@ -70,65 +55,3 @@ print("Final test loss and accuracy :", scores)
 
 
 
-
-# plot_model(model, "WRN-28-8.png", show_shapes=False)
-
-# optimizer = tf.train.AdamOptimizer()
-
-# for e in range(epochs):
-#     print('Epoch', e)
-#     batches = 0
-#     batch_size = 128
-#     for x_batch, y_batch in generator.flow(trainX, trainY, batch_size=batch_size):
-#         with tf.GradientTape() as tape:
-#             logits = model(x_batch)
-#             loss_value = tf.losses.sparse_softmax_cross_entropy(y_batch, logits)
-#         grads = tape.gradient([loss_value, model.variables])
-#         optimizer.apply_gradients(zip(grads, mnist_model.variables),
-#                                     global_step=tf.train.get_or_create_global_step())
-#         batches += 1
-#         if batches >= len(trainX) / batch_size:
-#             # we need to break the loop by hand because
-#             # the generator loops indefinitely
-#             break
-
-
-
-
-# loss_history = []
-
-
-# for (batch, (images, labels)) in enumerate(dataset.take(400)):
-#   if batch % 80 == 0:
-#     print()
-#   print('.', end='')
-#   with tf.GradientTape() as tape:
-#     logits = mnist_model(images, training=True)
-#     loss_value = tf.losses.sparse_softmax_cross_entropy(labels, logits)
-
-#   loss_history.append(loss_value.numpy())
-#   grads = tape.gradient(loss_value, mnist_model.variables)
-#   optimizer.apply_gradients(zip(grads, mnist_model.variables),
-#                             global_step=tf.train.get_or_create_global_step())
-
-# model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["acc"])
-# print("Finished compiling")
-# print("Allocating GPU memory")
-
-# # model.load_weights("weights/WRN-28-8 Weights.h5")
-# # print("Model loaded.")
-
-# model.fit_generator(generator.flow(trainX, trainY, batch_size=batch_size), steps_per_epoch=len(trainX) // batch_size + 1, nb_epoch=nb_epoch,
-#                    callbacks=[callbacks.ModelCheckpoint("WRN-28-8 Weights.h5", monitor="val_acc", save_best_only=True)],
-#                    validation_data=(testX, testY),
-#                    validation_steps=testX.shape[0] // batch_size,)
-
-# yPreds = model.predict(testX)
-# yPred = np.argmax(yPreds, axis=1)
-# yPred = kutils.to_categorical(yPred)
-# yTrue = testY
-
-# accuracy = metrics.accuracy_score(yTrue, yPred) * 100
-# error = 100 - accuracy
-# print("Accuracy : ", accuracy)
-# print("Error : ", error)

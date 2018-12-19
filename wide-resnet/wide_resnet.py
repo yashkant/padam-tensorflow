@@ -20,12 +20,9 @@ class WRNModel(tf.keras.Model):
         model = []
         out_channels = 16
         model.append(tf.keras.layers.Conv2D(out_channels, (3, 3), padding='same'))
-        # x = Conv2D(16, (3, 3), padding='same')(input)
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
         model.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model.append(tf.keras.layers.Activation('relu'))
-        # x = BatchNormalization(axis=channel_axis)(x)
-        # x = Activation('relu')(x) 
         return out_channels, [model]
 
 
@@ -51,7 +48,6 @@ class WRNModel(tf.keras.Model):
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
-        # m = add([init, x])
         return out_channels, [model_x, model_y]
 
 
@@ -77,7 +73,6 @@ class WRNModel(tf.keras.Model):
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
-        # m = add([init, x])
         return out_channels, [model_x, model_y]
 
 
@@ -104,7 +99,6 @@ class WRNModel(tf.keras.Model):
         model_y.append(tf.keras.layers.Activation('relu'))
 
 
-        # m = add([init, x])
         return out_channels, [model_x, model_y]
 
 
@@ -150,7 +144,6 @@ class WRNModel(tf.keras.Model):
 
         model.append([[tf.keras.layers.MaxPooling2D((2, 2))]])
 
-        # x = MaxPooling2D((2, 2))(x)
 
         for i in range(N):
             channels, blk = self.__conv3_block(channels, width, dropout)
@@ -158,7 +151,6 @@ class WRNModel(tf.keras.Model):
             nb_conv += 2
 
         model.append([[tf.keras.layers.MaxPooling2D((2, 2))]])
-        # x = MaxPooling2D((2, 2))(x)
 
 
         for i in range(N):
@@ -168,8 +160,6 @@ class WRNModel(tf.keras.Model):
 
         if include_top:
             model.append([[tf.keras.layers.GlobalAveragePooling2D(), tf.keras.layers.Dense(nb_classes, activation=activation)]])
-            # x = GlobalAveragePooling2D()(x)
-            # x = Dense(nb_classes, activation=activation)(x)
 
         return model
 
