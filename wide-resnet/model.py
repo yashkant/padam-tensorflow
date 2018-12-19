@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
+tf.enable_eager_execution()
 import os
 import sys
 import numpy as np
@@ -11,13 +12,13 @@ from keras.utils import plot_model
 from wide_resnet import WRNModel
 
 from keras import backend as K
-os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
-tf.enable_eager_execution()
+os.environ["CUDA_VISIBLE_DEVICES"]= "0"
 
 
 batch_size = 100
 nb_epoch = 100
 img_rows, img_cols = 32, 32
+epochs = 100
 
 (trainX, trainY), (testX, testY) = cifar10.load_data()
 
@@ -26,48 +27,70 @@ trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
 testX = testX.astype('float32')
 testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 
-tempY = testY
+# tempY = testY
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
-generator = ImageDataGenerator(rotation_range=0,
-                               width_shift_range=0./32,
-                               height_shift_range=0./32,
-                               horizontal_flip=False)
+testY = tf.one_hot(testY, depth=10).numpy()
+trainY = tf.one_hot(trainY, depth=10).numpy()
 
-generator.fit(trainX, seed=0, augment=True)
+testY = testY.astype(np.int64)
+testX = testX.astype(np.int64)
+# print(type(testY))
+# print(trainY)
 
-init_shape = (3, 32, 32) if K.image_dim_ordering() == 'th' else (32, 32, 3)
+
+# generator = ImageDataGenerator(rotation_range=0,
+#                                width_shift_range=0./32,
+#                                height_shift_range=0./32,
+#                                horizontal_flip=False)
+
+# generator.fit(trainX, seed=0, augment=True)
+
 
 # For WRN-16-8 put N = 2, k = 8
 # For WRN-28-10 put N = 4, k = 10
 # For WRN-40-4 put N = 6, k = 4
 
-model = wide_resnet.WideResidualNetwork()
-model.summary()
-plot_model(model, "WRN-28-8.png", show_shapes=False)
+model = WRNModel()
 
-optimizer = tf.train.AdamOptimizer()
+model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+
+dummy_x = tf.zeros((1, 32, 32, 3))
+model._set_inputs(dummy_x)
+print(model(dummy_x).shape)
+# train
+model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
+          validation_data=(testX, testY), verbose=1)
+
+# evaluate on test set
+scores = model.evaluate(testX, testY, batch_size, verbose=1)
+print("Final test loss and accuracy :", scores)
 
 
-for e in range(epochs):
-    print('Epoch', e)
-    batches = 0
-    batch_size = 128
-    for x_batch, y_batch in datagen.flow(trainX, trainY, batch_size=batch_size):
-        with tf.GradientTape() as tape:
-            logits = model(x_batch, training=True)
-            loss_value = tf.losses.sparse_softmax_cross_entropy(y_batch, logits)
-        
-        grads = tape.gradient([loss_value, model.variables])
-        optimizer.apply_gradients(zip(grads, mnist_model.variables),
-                                    global_step=tf.train.get_or_create_global_step())
 
-        batches += 1
-        if batches >= len(trainX) / batch_size:
-            # we need to break the loop by hand because
-            # the generator loops indefinitely
-            break
+
+# plot_model(model, "WRN-28-8.png", show_shapes=False)
+
+# optimizer = tf.train.AdamOptimizer()
+
+# for e in range(epochs):
+#     print('Epoch', e)
+#     batches = 0
+#     batch_size = 128
+#     for x_batch, y_batch in generator.flow(trainX, trainY, batch_size=batch_size):
+#         with tf.GradientTape() as tape:
+#             logits = model(x_batch)
+#             loss_value = tf.losses.sparse_softmax_cross_entropy(y_batch, logits)
+#         grads = tape.gradient([loss_value, model.variables])
+#         optimizer.apply_gradients(zip(grads, mnist_model.variables),
+#                                     global_step=tf.train.get_or_create_global_step())
+#         batches += 1
+#         if batches >= len(trainX) / batch_size:
+#             # we need to break the loop by hand because
+#             # the generator loops indefinitely
+#             break
 
 
 
