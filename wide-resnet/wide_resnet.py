@@ -204,6 +204,5 @@ class WRNModel(tf.keras.Model):
                 prev_blk_output = tf.keras.layers.Add()(temp_paths) 
             else:
                 prev_blk_output = temp_paths[0]
-            print("Print block output shapes: ", prev_blk_output.shape)
 
         return prev_blk_output
