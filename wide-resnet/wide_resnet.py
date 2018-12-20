@@ -207,6 +207,3 @@ class WRNModel(tf.keras.Model):
             print("Print block output shapes: ", prev_blk_output.shape)
 
         return prev_blk_output
-
-
-    
