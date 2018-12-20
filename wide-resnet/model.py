@@ -1,8 +1,9 @@
 from __future__ import absolute_import, division, print_function
-import tensorflow as tf
-tf.enable_eager_execution()
 import os
 import sys
+os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
+import tensorflow as tf
+tf.enable_eager_execution()
 import numpy as np
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
@@ -10,9 +11,8 @@ import keras.utils.np_utils as kutils
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from wide_resnet import WRNModel
-
 from keras import backend as K
-os.environ["CUDA_VISIBLE_DEVICES"]= "0"
+
 
 
 batch_size = 100
