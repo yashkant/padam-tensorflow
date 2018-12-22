@@ -124,9 +124,9 @@ def _building_block_v1(inputs, filters, training, projection_shortcut, strides,
   return inputs
 
 
-def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
+def block_layer(inputs, filters, bottleneck, block_fn, strides,
                 training, name, data_format):
-  """Creates one layer of blocks for the ResNet model.
+  """Creates one block layer for the ResNet model.
   Args:
     inputs: A tensor of size [batch, channels, height_in, width_in] or
       [batch, height_in, width_in, channels] depending on data_format.
@@ -134,7 +134,6 @@ def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
     bottleneck: Is the block created a bottleneck block.
     block_fn: The block to use within the model, either `building_block` or
       `bottleneck_block`.
-    blocks: The number of blocks contained in the layer.
     strides: The stride to use for the first convolution of the layer. If
       greater than 1, this layer will ultimately downsample the input.
     training: Either True or False, whether we are currently training the
@@ -157,9 +156,6 @@ def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
   inputs = block_fn(inputs, filters, training, projection_shortcut, strides,
                     data_format)
 
-  for _ in range(1, blocks):
-    inputs = block_fn(inputs, filters, training, None, 1, data_format)
-
   return tf.identity(inputs, name)
 
 
@@ -169,7 +165,7 @@ class Model(object):
   def __init__(self, resnet_size, bottleneck=False, num_classes, num_filters,
                kernel_size,
                conv_stride, first_pool_size, first_pool_stride,
-               block_sizes, block_strides,
+               num_block_layers, block_strides,
                resnet_version=1, data_format=None,
                dtype=DEFAULT_DTYPE):
     """Creates a model for classifying an image.
@@ -186,9 +182,9 @@ class Model(object):
         If none, the first pooling layer is skipped.
       first_pool_stride: stride size for the first pooling layer. Not used
         if first_pool_size is None.
-      block_sizes: An integer containng the number of building blocks.
+      num_block_layers: An integer containng the number of block layers.s
       block_strides: List of integers representing the desired stride size for
-        each of the sets of block layers. Should be same length as block_sizes.
+        each of the sets of block layers. Should be same length as num_block_layers.
       resnet_version: Integer representing which version of the ResNet network
         to use. See README for details. Valid values: [1, 2]
       data_format: Input format ('channels_last', 'channels_first', or None).
@@ -232,10 +228,10 @@ class Model(object):
     self.conv_stride = conv_stride
     self.first_pool_size = first_pool_size
     self.first_pool_stride = first_pool_stride
-    self.block_sizes = block_sizes
+    self.num_block_layers = num_block_layers
     self.block_strides = block_strides
     self.dtype = dtype
-    self.pre_activation = resnet_version == 2
+
 
   def _custom_dtype_getter(self, getter, name, shape=None, dtype=DEFAULT_DTYPE,
                            *args, **kwargs):
@@ -321,27 +317,21 @@ class Model(object):
             data_format=self.data_format)
         inputs = tf.identity(inputs, 'initial_max_pool')
 
-      for i in enumerate(self.block_sizes):
+      for i in range(self.num_block_layers):
         num_filters = self.num_filters * (2**i)
         inputs = block_layer(
             inputs=inputs, filters=num_filters, bottleneck=self.bottleneck,
-            block_fn=self.block_fn, blocks=1,
+            block_fn=self.block_fn,
             strides=self.block_strides[i], training=training,
             name='block_layer{}'.format(i + 1), data_format=self.data_format)  
 
-      """for i, num_blocks in enumerate(self.block_sizes):
+      """for i, num_blocks in enumerate(self.num_block_layers):
         num_filters = self.num_filters * (2**i)
         inputs = block_layer(
             inputs=inputs, filters=num_filters, bottleneck=self.bottleneck,
             block_fn=self.block_fn, blocks=num_blocks,
             strides=self.block_strides[i], training=training,
             name='block_layer{}'.format(i + 1), data_format=self.data_format)"""
-
-      # Only apply the BN and ReLU for model that does pre_activation in each
-      # building/bottleneck block, eg resnet V2.
-      if self.pre_activation:
-        inputs = batch_norm(inputs, training, self.data_format)
-        inputs = tf.nn.relu(inputs)
 
       # The current top layer has shape
       # `batch_size x pool_size x pool_size x final_size`.
