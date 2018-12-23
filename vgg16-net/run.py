@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import os 
 import sys
-# os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+os.environ["CUDA_VISIBLE_DEVICES"]= "1"
 
 import tensorflow as tf
 import keras.backend as K
@@ -13,7 +13,7 @@ import keras.utils.np_utils as kutils
 from model import VGG
 
 
-batch_size = 1
+batch_size = 128
 nb_epoch = 1
 img_rows, img_cols = 32, 32
 epochs = 1
