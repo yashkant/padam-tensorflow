@@ -31,9 +31,6 @@ testY = kutils.to_categorical(testY)
 testY = tf.one_hot(testY, depth=10).numpy()
 trainY = tf.one_hot(trainY, depth=10).numpy()
 
-testY = testY.astype(np.int64)
-testX = testX.astype(np.int64)
-
 
 model = VGG('VGG16', 10)
 
