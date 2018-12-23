@@ -33,7 +33,7 @@ class VGG(tf.keras.Model):
             else:
                 layers.append(tf.keras.layers.Conv2D(x, (3, 3), padding='same'))
                 channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
-#                 layers.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
+                layers.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
                 layers.append(tf.keras.layers.Activation('relu')) 
         return layers
 
