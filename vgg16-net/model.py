@@ -10,6 +10,7 @@ import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
 
 cfg = {
+    'test': [64, 'M', 128, 'M', 256, 'M', 512, 'M', 'M'],
     'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
@@ -72,7 +73,7 @@ if __name__ == '__main__':
     # testX = testX.astype(np.int64)
 
 
-    model = VGG('VGG16', 10)
+    model = VGG('test', 10)
 
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])

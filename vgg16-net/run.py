@@ -32,7 +32,7 @@ testY = tf.one_hot(testY, depth=10).numpy()
 trainY = tf.one_hot(trainY, depth=10).numpy()
 
 
-model = VGG('VGG16', 10)
+model = VGG('test', 10)
 
 model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                   metrics=['accuracy'])
