@@ -39,6 +39,7 @@ class VGG(tf.keras.Model):
 
     def _make_fc_layers(self, num_classes):
         layers=[]
+        layers.append(tf.keras.layers.Flatten())
         layers.append(tf.keras.layers.Dense(self.num_classes))
         return layers
     
