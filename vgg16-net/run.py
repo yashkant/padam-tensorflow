@@ -47,6 +47,5 @@ print(model(dummy_x).shape)
 model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
           validation_data=(testX, testY), verbose=1)
 
-evaluate on test set
 scores = model.evaluate(testX, testY, batch_size, verbose=1)
 print("Final test loss and accuracy :", scores)
