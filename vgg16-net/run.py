@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import os 
 import sys
-os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+# os.environ["CUDA_VISIBLE_DEVICES"]= "1"
 
 import tensorflow as tf
 import keras.backend as K
@@ -10,8 +10,9 @@ tf.enable_eager_execution()
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
-from model import VGG
 
+from model import VGG
+from padam import Padam
 
 batch_size = 128
 nb_epoch = 1
@@ -32,9 +33,9 @@ testY = tf.one_hot(testY, depth=10).numpy()
 trainY = tf.one_hot(trainY, depth=10).numpy()
 
 
-model = VGG('test', 10)
+model = VGG('VGG16', 10)
 
-model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
+model.compile(optimizer=Padam(), loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
 dummy_x = tf.zeros((1, 32, 32, 3))
