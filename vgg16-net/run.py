@@ -7,19 +7,45 @@ import tensorflow as tf
 import keras.backend as K
 import numpy as np
 tf.enable_eager_execution()
-from keras.datasets import cifar10
+
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
 
 from model import VGG
 from padam import Padam
 
-batch_size = 128
+dataset = 'cifar10'
+hyperparameters = {
+    'cifar10': {
+        'epoch': 200,
+        'batch_size': 128,
+        'decay_after': 50
+    },
+    'cifar100': {
+        'epoch': 200,
+        'batch_size': 128,
+        'decay_after': 50  
+    },
+    'imagenet': {
+        'epoch': 100,
+        'batch_size': 256,
+        'decay_after': 30
+    }
+}
+
+if dataset == 'cifar10':
+    from keras.datasets import cifar10
+    (trainX, trainY), (testX, testY) = cifar10.load_data()
+elif dataset == 'cifar100':
+    from keras.datasets import cifar100
+    (trainX, trainY), (testX, testY) = cifar100.load_data()
+
+batch_size = hyperparameters[dataset]['batch_size']
 nb_epoch = 1
 img_rows, img_cols = 32, 32
-epochs = 1
-
-(trainX, trainY), (testX, testY) = cifar10.load_data()
+epochs = hyperparameters[dataset]['epoch']
+train_size = trainX.shape[0]
+print(train_size)
 
 trainX = trainX.astype('float32')
 trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
@@ -32,11 +58,17 @@ testY = kutils.to_categorical(testY)
 testY = tf.one_hot(testY, depth=10).numpy()
 trainY = tf.one_hot(trainY, depth=10).numpy()
 
+tf.train.create_global_step()
+
+base_learning_rate = 0.1
+
+learning_rate = tf.train.exponential_decay(0.1, tf.train.get_global_step() * batch_size,
+                                       hyperparameters[dataset]['decay_after']*train_size, 0.1, staircase=True)
 
 model = VGG('VGG16', 10)
 
 model.compile(optimizer=Padam(), loss='categorical_crossentropy',
-                  metrics=['accuracy'])
+                  metrics=['accuracy'], global_step=tf.train.get_global_step())
 
 dummy_x = tf.zeros((1, 32, 32, 3))
 model._set_inputs(dummy_x)
