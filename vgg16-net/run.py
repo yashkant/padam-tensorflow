@@ -13,8 +13,11 @@ import keras.utils.np_utils as kutils
 
 from model import VGG
 from padam import Padam
+from amsgrad import AMSGrad
 
 dataset = 'cifar10'
+optimizer = 'padam'
+
 hyperparameters = {
     'cifar10': {
         'epoch': 200,
@@ -67,7 +70,21 @@ learning_rate = tf.train.exponential_decay(0.1, tf.train.get_global_step() * bat
 
 model = VGG('VGG16', 10)
 
-model.compile(optimizer=Padam(), loss='categorical_crossentropy',
+if optimizer == 'padam':
+    padamw = tf.contrib.opt.extend_with_decoupled_weight_decay(Padam)
+    opw = padamw(weight_decay=0.0005, learning_rate=0.1, p=0.125, beta1=0.9, beta2=0.999)
+elif optimizer == 'adam':
+    adamw = tf.contrib.opt.extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
+    opw = adamw(weight_decay=0.0001, learning_rate=0.001, beta1=0.9, beta2=0.99)
+elif optimizer == 'amsgrad':
+    amsgradw = tf.contrib.opt.extend_with_decoupled_weight_decay(AMSGrad)
+    opw = amsgradw(weight_decay=0.0001, learning_rate=0.001, beta1=0.9, beta2=0.99)
+elif optimizer == 'sgd':
+    sgdw = tf.contrib.opt.extend_with_decoupled_weight_decay(tf.train.MomentumOptimizer)
+    opw = sgdw(weight_decay=0.0005, learning_rate=0.1, momentum=0.9)
+
+
+model.compile(optimizer=opw, loss='categorical_crossentropy',
                   metrics=['accuracy'], global_step=tf.train.get_global_step())
 
 dummy_x = tf.zeros((1, 32, 32, 3))
