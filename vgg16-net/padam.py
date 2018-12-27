@@ -83,6 +83,7 @@ class Padam(optimizer.Optimizer):
         beta2_t = math_ops.cast(self._beta2_t, var.dtype.base_dtype)
         epsilon_t = math_ops.cast(self._epsilon_t, var.dtype.base_dtype)
         p_t = math_ops.cast(self._p_t, var.dtype.base_dtype)
+        # Bias correction step below! 
         lr = (lr_t * math_ops.sqrt(1 - beta2_power) / (1 - beta1_power))
         # m_t = beta1 * m + (1 - beta1) * g_t
         m = self.get_slot(var, "m")
