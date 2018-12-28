@@ -22,17 +22,18 @@ class Resnet(tf.keras.Model):
         # The padding is consistent and is based only on `kernel_size`, not on the
         # dimensions of `inputs` (as opposed to using `tf.layers.conv2d` alone).
         # returns output feature map of same spatial size as input.
-        model_x = []
+        #model_x = []
         if strides > 1:
             pad_total = kernel_size - 1
             pad_beg = pad_total // 2
             pad_end = pad_total - pad_beg
-    
-            model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
-    
-        model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
-        
-        return model_x
+            model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' )])
+           # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
+            return model_x
+        else : 
+        	return tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' )
+        #model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
+              
      
     
     def _building_block_v1(self, filters, strides):
@@ -42,16 +43,15 @@ class Resnet(tf.keras.Model):
           stride 1)
         """
         layer_a = [] # has 5 elements
-    
-        channel_axis = 1 if self.data_format == 'channels_first' else -1
-    
+  
+        
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides = strides))
-        layer_a.append(tf.keras.layers.BatchNormalization(axis=channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
+        layer_a.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
             scale=True, trainable=self.training, fused=True))
         layer_a.append(tf.keras.layers.Activation('relu'))
     
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides=1))
-        layer_a.append(tf.keras.layers.BatchNormalization(axis=channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
+        layer_a.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
             scale=True, trainable=self.training, fused=True))
     
         return layer_a
@@ -92,7 +92,7 @@ class Resnet(tf.keras.Model):
         # conv2, conv3, conv4, conv5
         for i in range(len(self.block_list)):
             num_filters = filters * (2**i)
-            blk = self.block_layer(num_filters, strides, self.block_list[i])
+            blk = self.block_layer(num_filters, strides=(1 if i==0 else strides), blocks=self.block_list[i])
             model.append(blk)
     
         return model
@@ -113,6 +113,7 @@ class Resnet(tf.keras.Model):
         self.data_format = data_format
         self.classes = classes
         self.training = training
+        self.channel_axis = 1 if self.data_format == 'channels_first' else -1
     
         self.model = self._create_ResnetModel(filters = initial_filters)
     
@@ -130,16 +131,22 @@ class Resnet(tf.keras.Model):
             blk_index = blk+1
             for basic_bblk in range(self.block_list[blk]):
                 # 1st basic building block in each blk uses proj shortcut and stride of 2 else normal shortcut
-                if (basic_bblk == 0 ): 
+                #print(inputs.shape)
+                if (basic_bblk == 0 and blk!=0):
                     short = self.conv2d_fixed_padding(filters=self.initial_filters*(2**blk), kernel_size=1, strides=2)(inputs)
-                    short = tf.keras.layers.BatchNormalization(axis=channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
+                    #sprint(blk)
+                    #print(short.shape)
+                    short = tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
                                      scale=True, trainable=training, fused=True)(short)
+                    #print(short.shape)
                 else :
                     short = inputs
-    
-                for lyr in range(len(model[blk_index][basic_bblk])):
-                    inputs = model[blk_index][basic_bblk][lyr](inputs)
-                
+                    print(inputs.shape)
+                for lyr in range(len(self.model[blk_index][basic_bblk])):
+                    inputs = self.model[blk_index][basic_bblk][lyr](inputs)
+                    print(inputs.shape)
+                print(inputs.shape)  
+                print(short.shape)
                 inputs = inputs + short
                 inputs = tf.nn.relu(inputs)
     
