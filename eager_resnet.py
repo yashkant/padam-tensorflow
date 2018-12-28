@@ -21,13 +21,13 @@ class Resnet(tf.keras.Model):
         """Strided 2-D convolution with explicit padding."""
         # The padding is consistent and is based only on `kernel_size`, not on the
         # dimensions of `inputs` (as opposed to using `tf.layers.conv2d` alone).
-        # returns output feature map of same spatial size as input.
-        #model_x = []
+        # Returns output feature map of same spatial size as input if stride=1 else 
+        # halves the input dimensions.
         if strides > 1:
             pad_total = kernel_size - 1
             pad_beg = pad_total // 2
             pad_end = pad_total - pad_beg
-            model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' )])
+            model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' )])
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
             return model_x
         else : 
@@ -141,12 +141,12 @@ class Resnet(tf.keras.Model):
                     #print(short.shape)
                 else :
                     short = inputs
-                    print(inputs.shape)
+                    #print(inputs.shape)
                 for lyr in range(len(self.model[blk_index][basic_bblk])):
                     inputs = self.model[blk_index][basic_bblk][lyr](inputs)
-                    print(inputs.shape)
-                print(inputs.shape)  
-                print(short.shape)
+                    #print(inputs.shape)
+                #print(inputs.shape)  
+                #print(short.shape)
                 inputs = inputs + short
                 inputs = tf.nn.relu(inputs)
     
