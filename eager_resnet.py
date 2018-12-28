@@ -1,5 +1,15 @@
+from __future__ import absolute_import, division, print_function
+
 import warnings
 import tensorflow as tf
+
+import keras.backend as K
+import numpy as np
+
+tf.enable_eager_execution()
+from keras.datasets import cifar10
+import keras.callbacks as callbacks
+import keras.utils.np_utils as kutils
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
@@ -28,8 +38,6 @@ class Resnet(tf.keras.Model):
     def _building_block_v1(self, filters, strides):
         """A basic building block, without a bottleneck.
         Args:
-          training: A Boolean for whether the model is in training or inference
-            mode. Needed for batch normalization.
           strides: The stride to use for the first layer out of the two (2nd layer always has 
           stride 1)
         """
@@ -39,12 +47,12 @@ class Resnet(tf.keras.Model):
     
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides = strides))
         layer_a.append(tf.keras.layers.BatchNormalization(axis=channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
-            scale=True, training=self.training, fused=True))
+            scale=True, trainable=self.training, fused=True))
         layer_a.append(tf.keras.layers.Activation('relu'))
     
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides=1))
         layer_a.append(tf.keras.layers.BatchNormalization(axis=channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
-            scale=True, training=self.training, fused=True))
+            scale=True, trainable=self.training, fused=True))
     
         return layer_a
     
@@ -52,13 +60,10 @@ class Resnet(tf.keras.Model):
         """Creates one layer of blocks for the ResNet model.
         Args:
           filters: The number of filters for this blk.
-          bottleneck: Is the block created a bottleneck block.
           blocks: The number of basic building blocks contained in the layer.
           strides: The stride to use for the first convolution of the layer. If
             greater than 1, this layer will ultimately downsample the input.
-          training: Either True or False, whether we are currently training the
-            model. Needed for batch norm.
-          data_format: The input format ('channels_last' or 'channels_first').
+
         """
         model_y = []
         model_y.append(self._building_block_v1(filters, strides))
@@ -75,11 +80,14 @@ class Resnet(tf.keras.Model):
         # blocklist : List of values, each value shows the number of basic building blocks in the ith blk.
         # strides : stride for the 1st conv layer of all 4 blks (each basic building blk made of 2 conv layers)
         # For resnet18, blocklist = [2, 2, 2, 2], eack blk made of 2 basic building blocks.
-        model = []
-    
+        model = []    
         # conv1
+        conv1=[]
         initial_layer = self.conv2d_fixed_padding(filters = 64, kernel_size = 7, strides = 2)
-        model.append([[initial_layer, tf.keras.layers.MaxPooling2D((3, 3), strides = 2, padding = "same", data_format = self.data_format)]])
+        conv1.append(initial_layer)
+        conv1.append(tf.keras.layers.MaxPooling2D((3, 3), strides = 2, padding = "same", data_format = self.data_format))
+        
+        model.append([conv1])
         
         # conv2, conv3, conv4, conv5
         for i in range(len(self.block_list)):
@@ -92,8 +100,12 @@ class Resnet(tf.keras.Model):
     
     # resnet with basic building blocks
     def __init__(self, training, data_format, initial_filters=64, block_list=[2, 2, 2, 2], classes=10):
+
+    	"""training: Either True or False, whether we are currently training the
+           model. Needed for batch norm.
+          data_format: The input format ('channels_last' or 'channels_first')."""
     
-        super(ResNet, self).__init__()
+        super(Resnet, self).__init__()
     
         self.initial_filters = initial_filters
         self.block_list = block_list
@@ -102,7 +114,7 @@ class Resnet(tf.keras.Model):
         self.classes = classes
         self.training = training
     
-        self.model = self._create_ResnetModel(block_list, data_format, filters = initial_filters)
+        self.model = self._create_ResnetModel(filters = initial_filters)
     
     def call(self, inputs, training=None, mask=None):
         """if self.data_format == 'channels_first':
@@ -110,9 +122,9 @@ class Resnet(tf.keras.Model):
             # This provides a large performance boost on GPU. See
             # https://www.tensorflow.org/performance/performance_guide#data_formats
             inputs = tf.transpose(inputs, [0, 3, 1, 2])"""
-    
+        
         for i in range(len(self.model[0][0])):
-            inputs = model[0][0][i](inputs)
+            inputs = self.model[0][0][i](inputs)
     
         for blk in range(self.num_blocks):
             blk_index = blk+1
@@ -121,7 +133,7 @@ class Resnet(tf.keras.Model):
                 if (basic_bblk == 0 ): 
                     short = self.conv2d_fixed_padding(filters=self.initial_filters*(2**blk), kernel_size=1, strides=2)(inputs)
                     short = tf.keras.layers.BatchNormalization(axis=channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
-                                     scale=True, training=training, fused=True)(short)
+                                     scale=True, trainable=training, fused=True)(short)
                 else :
                     short = inputs
     
@@ -143,6 +155,47 @@ class Resnet(tf.keras.Model):
         inputs = tf.layers.dense(inputs=inputs, units=self.classes)
     
         return inputs
+
+
+if __name__ == '__main__':
+    batch_size = 1
+    nb_epoch = 1
+    img_rows, img_cols = 32, 32
+    epochs = 1
+
+    # (trainX, trainY), (testX, testY) = cifar10.load_data()
+
+    # trainX = trainX.astype('float32')
+    # trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
+    # testX = testX.astype('float32')
+    # testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
+
+    # trainY = kutils.to_categorical(trainY)
+    # testY = kutils.to_categorical(testY)
+
+    # testY = tf.one_hot(testY, depth=10).numpy()
+    # trainY = tf.one_hot(trainY, depth=10).numpy()
+
+    # testY = testY.astype(np.int64)
+    # testX = testX.astype(np.int64)
+
+
+    model = Resnet(training= False, data_format='channels_last')
+
+    model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
+                      metrics=['accuracy'])
+
+    dummy_x = tf.zeros((1, 32, 32, 3))
+    model._set_inputs(dummy_x)
+    print(model(dummy_x).shape)
+
+    # train
+    # model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
+              # validation_data=(testX, testY), verbose=1)
+
+    # evaluate on test set
+    # scores = model.evaluate(testX, testY, batch_size, verbose=1)
+    # print("Final test loss and accuracy :", scores)
     
     
  
