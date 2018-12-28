@@ -8,6 +8,7 @@ tf.enable_eager_execution()
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
+from keras import regularizers
 
 cfg = {
     'test': [64, 'M', 128, 'M', 256, 'M'],
@@ -18,10 +19,11 @@ cfg = {
 }
 
 class VGG(tf.keras.Model):
-    def __init__(self, vgg_name, num_classes):
+    def __init__(self, vgg_name, num_classes, weight_decay):
         super(VGG, self).__init__()
         self.vgg_name = vgg_name
         self.num_classes = num_classes
+        self.wd = weight_decay
         self.convlayers = self._make_convlayers(cfg[vgg_name])
         self.fc_layers = self._make_fc_layers(num_classes)
 
@@ -31,7 +33,7 @@ class VGG(tf.keras.Model):
             if x == 'M':
                 layers.append(tf.keras.layers.MaxPooling2D((2, 2)))
             else:
-                layers.append(tf.keras.layers.Conv2D(x, (3, 3), padding='same'))
+                layers.append(tf.keras.layers.Conv2D(x, (3, 3), padding='same', kernel_regularizer=regularizers.l2(self.wd)))
                 channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
                 layers.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
                 layers.append(tf.keras.layers.Activation('relu')) 
@@ -40,7 +42,7 @@ class VGG(tf.keras.Model):
     def _make_fc_layers(self, num_classes):
         layers=[]
         layers.append(tf.keras.layers.Flatten())
-        layers.append(tf.keras.layers.Dense(self.num_classes))
+        layers.append(tf.keras.layers.Dense(self.num_classes, kernel_regularizer=regularizers.l2(self.wd)))
         return layers
     
     def call(self, inputs):
