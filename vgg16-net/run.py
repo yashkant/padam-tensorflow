@@ -16,7 +16,7 @@ from padam import Padam
 from amsgrad import AMSGrad
 
 dataset = 'cifar10'
-optimizer = 'padam'
+optimizer = 'adamw'
 
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
@@ -109,8 +109,8 @@ testX = testX/255
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
-# testY = tf.one_hot(testY, depth=10).numpy()
-# trainY = tf.one_hot(trainY, depth=10).numpy()
+testY = tf.one_hot(testY, depth=10).numpy()
+trainY = tf.one_hot(trainY, depth=10).numpy()
 
 tf.train.create_global_step()
 
@@ -119,12 +119,15 @@ base_learning_rate = 0.1
 learning_rate = tf.train.exponential_decay(0.1, tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
 
-model = VGG('VGG16', 10)
+if optimizer is not 'adamw':
+    model = VGG('VGG16', 10, op['weight_decay'])
+else:
+    model = VGG('VGG16', 10, 0)
 
 if optimizer == 'padam':
     optim = Padam(learning_rate=op['lr'], p=op['p'], beta1=op['b1'], beta2=op['b2'])
-elif optimizer == 'adamw':
-    optimizer = tf.train.AdamOptimizer(learning_rate=op['lr'], beta1=op['b1'], beta2=op['b2'])
+elif optimizer == 'adam':
+    optim = tf.train.AdamOptimizer(learning_rate=op['lr'], beta1=op['b1'], beta2=op['b2'])
 elif optimizer == 'adamw':
     adamw = tf.contrib.opt.extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
     optim = adamw(weight_decay=op['weight_decay'], learning_rate=op['lr'],  beta1=op['b1'], beta2=op['b2'])
@@ -133,18 +136,13 @@ elif optimizer == 'amsgrad':
 elif optimizer == 'sgd':
     optim = tf.train.MomentumOptimizer(learning_rate=op['lr'], momentum=op['m'])
 
-dummy_x = tf.zeros((1, 32, 32, 3))
+dummy_x = tf.zeros((batch_size, 32, 32, 3))
+tf_train_labels = tf.zeros((batch_size, 10))
+
 model._set_inputs(dummy_x)
-y = model(dummy_x)
+dummy_y = model(dummy_x)
 print(model(dummy_x).shape)
 
-# if optimizer is not 'adamw':
-#     var   = model.trainable_weights
-
-#     lossL2 = tf.add_n([ tf.nn.l2_loss(v) for v in var
-#                         if 'bias' not in v.name ]) * op['weight_decay']
-#     loss = (tf.reduce_mean(tf.keras.backend.categorical_crossentropy(target=,output=)) + lossL2)
-# else:
 loss = 'categorical_crossentropy'
 
 model.compile(optimizer=optim, loss=loss,
