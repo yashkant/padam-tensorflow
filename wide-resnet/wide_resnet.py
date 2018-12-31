@@ -10,15 +10,16 @@
 import warnings
 import tensorflow as tf
 import keras.backend as K
+import numpy as np 
 
 
 
 class WRNModel(tf.keras.Model):
 
-    def __conv1_block(self):
+    def __conv1_block(self, multiplier):
 
         model = []
-        out_channels = 16
+        out_channels = 16*multiplier
         model.append(tf.keras.layers.Conv2D(out_channels, (3, 3), padding='same'))
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
         model.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
@@ -169,7 +170,12 @@ class WRNModel(tf.keras.Model):
                         classes=10, activation='softmax'):
 
         super(WRNModel, self).__init__()
-
+        
+        self.n = int((depth-4)/6)
+        self.conv_w_init = tf.initializers.random_normal(mean=0.0, stddev= np.sqrt(2.0/n))
+        self.bn_w_init = tf.constant_initializer(1.0)
+        self.bn_b_init = tf.constant_initializer(0.0)
+        
         self.depth = depth
         self.width = width
         self.dropout_rate = dropout_rate
