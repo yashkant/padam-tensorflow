@@ -20,8 +20,9 @@ class WRNModel(tf.keras.Model):
 
         model = []
         out_channels = 16*multiplier
-        model.append(tf.keras.layers.Conv2D(out_channels, (3, 3), padding='same'))
+        model.append(tf.keras.layers.Conv2D(out_channels, (3, 3), padding= 1, kernel_initializer = self.conv_w_init))
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
+        # TODO: Fix batchnorm weight initialization
         model.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model.append(tf.keras.layers.Activation('relu'))
         return out_channels, [model]
@@ -36,23 +37,23 @@ class WRNModel(tf.keras.Model):
 
         # Check if input number of filters is same as 16 * k, else create convolution2d for this input
         if input_channels != 16 * k:
-            model_x.append(tf.keras.layers.Conv2D(16 * k, (1, 1), activation='linear', padding='same'))
+            model_x.append(tf.keras.layers.Conv2D(16 * k, (1, 1), activation='linear', padding=1, kernel_initializer = self.conv_w_init))
 
-        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding='same')) 
+        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init)) 
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis)) 
         model_y.append( tf.keras.layers.Activation('relu'))
 
         if dropout > 0.0:
             model_y.append(tf.keras.layers.Dropout(dropout)(x)) 
 
-        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding='same'))
+        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
         return out_channels, [model_x, model_y]
 
 
-    def __conv3_block(self, input_channels, k=1, dropout=0.0):
+    def __conv3_block(self, input_channels, k=1, dropout=0.0, stride = 1):
 
         model_x = []
         model_y = []
@@ -60,24 +61,24 @@ class WRNModel(tf.keras.Model):
 
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
-        if input_channels != 32 * k:
-            model_x.append(tf.keras.layers.Conv2D(32 * k, (1, 1), activation='linear', padding='same'))
-
-        model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding='same'))
+        if stride != 1 or input_channels != 32 * k:
+            model_x.append(tf.keras.layers.Conv2D(32 * k, (1, 1), strides = stride, padding=1, kernel_initializer = self.conv_w_init))
+        else:
+            model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
         if dropout > 0.0:
             model_y.append(tf.keras.layers.Dropout(dropout))
 
-        model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding='same'))
+        model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
         return out_channels, [model_x, model_y]
 
 
-    def __conv4_block(self, input_channels, k=1, dropout=0.0):
+    def __conv4_block(self, input_channels, k=1, dropout=0.0, stride = 1):
 
         model_x = []
         model_y = []
@@ -85,17 +86,17 @@ class WRNModel(tf.keras.Model):
 
         channel_axis = 1 if K.image_dim_ordering() == 'th' else -1
 
-        if input_channels != 64 * k:
-            model_x.append(tf.keras.layers.Conv2D(64 * k, (1, 1), activation='linear', padding='same'))
-
-        model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding='same'))
+        if stride != 1 or input_channels != 64 * k:
+            model_x.append(tf.keras.layers.Conv2D(64 * k, (1, 1), strides = stride,  padding=1, kernel_initializer = self.conv_w_init))
+        else:
+            model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
         if dropout > 0.0:
             model_y.append(tf.keras.layers.Dropout(dropout))
 
-        model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding='same'))
+        model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
@@ -108,7 +109,7 @@ class WRNModel(tf.keras.Model):
 
 
     def __create_wide_residual_network(self, nb_classes, include_top, depth=28,
-                                       width=8, dropout=0.0, activation='softmax'):
+                                       multiplier=4, dropout=0.0, activation='softmax'):
         ''' 
 
         Creates a Wide Residual Network model and stores it to an array and returns it.
@@ -124,7 +125,7 @@ class WRNModel(tf.keras.Model):
                    For a depth of 16, n = 16, N = (16 - 4) / 6 = 2
                    For a depth of 28, n = 28, N = (28 - 4) / 6 = 4
                    For a depth of 40, n = 40, N = (40 - 4) / 6 = 6
-            width: Width of the network.
+            multiplier: multiplier of the network.
             dropout: Adds dropout if value is greater than 0.0
 
         Returns:a Keras Model
@@ -139,32 +140,39 @@ class WRNModel(tf.keras.Model):
 
 
         for i in range(N):
-            channels, blk = self.__conv2_block(channels, width, dropout)
+            channels, blk = self.__conv2_block(channels, multiplier, dropout)
             model.append(blk)
             nb_conv += 2
 
-        model.append([[tf.keras.layers.MaxPooling2D((2, 2))]])
+        # model.append([[tf.keras.layers.MaxPooling2D((2, 2))]])
 
 
         for i in range(N):
-            channels, blk = self.__conv3_block(channels, width, dropout)
+            if(i == 0): 
+                channels, blk = self.__conv3_block(channels, multiplier, dropout, stride = 2)
+            channels, blk = self.__conv3_block(channels, multiplier, dropout)
+
             model.append(blk)
             nb_conv += 2
 
-        model.append([[tf.keras.layers.MaxPooling2D((2, 2))]])
+        # model.append([[tf.keras.layers.MaxPooling2D((2, 2))]])
 
 
         for i in range(N):
-            channels, blk = self.__conv4_block(channels, width, dropout)
+            if(i == 0): 
+                channels, blk = self.__conv3_block(channels, multiplier, dropout, stride = 2)
+            channels, blk = self.__conv3_block(channels, multiplier, dropout)
+
             model.append(blk)
             nb_conv += 2
 
+        # Adding average pool instead of GAP! 
         if include_top:
-            model.append([[tf.keras.layers.GlobalAveragePooling2D(), tf.keras.layers.Dense(nb_classes, activation=activation)]])
+            model.append([[tf.keras.layers.AveragePooling2D(pool_size=8), tf.keras.layers.Dense(nb_classes, activation=activation)]])
 
         return model
 
-    def __init__(self, depth=28, width=8, dropout_rate=0.0,
+    def __init__(self, depth=28, multiplier=4, dropout_rate=0.0,
                         include_top=True,
                         input_tensor=None, input_shape=None,
                         classes=10, activation='softmax'):
@@ -177,17 +185,17 @@ class WRNModel(tf.keras.Model):
         self.bn_b_init = tf.constant_initializer(0.0)
         
         self.depth = depth
-        self.width = width
+        self.multiplier = multiplier
         self.dropout_rate = dropout_rate
         self.include_top = include_top
         self.input_tensor = input_tensor
         
 
-        if (depth - 4) % 6 != 0:
-            raise ValueError('Depth of the network must be such that (depth - 4)'
-                             'should be divisible by 6.')
+        # if (depth - 4) % 6 != 0:
+        #     raise ValueError('Depth of the network must be such that (depth - 4)'
+        #                      'should be divisible by 6.')
 
-        self.model = self.__create_wide_residual_network(classes, include_top, depth, width,
+        self.model = self.__create_wide_residual_network(classes, include_top, depth, multiplier,
                                            dropout_rate, activation)
 
 
