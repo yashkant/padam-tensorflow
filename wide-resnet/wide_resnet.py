@@ -20,8 +20,9 @@ class WRNModel(tf.keras.Model):
 
         model = []
         out_channels = 16*multiplier
-        model.append(tf.keras.layers.Conv2D(out_channels, (3, 3), padding= 1, kernel_initializer = self.conv_w_init))
+        model.append(tf.keras.layers.Conv2D(out_channels, (3, 3), padding= 1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
+
         # TODO: Fix batchnorm weight initialization
         model.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model.append(tf.keras.layers.Activation('relu'))
@@ -35,18 +36,18 @@ class WRNModel(tf.keras.Model):
         out_channels = 16*k
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
-        # Check if input number of filters is same as 16 * k, else create convolution2d for this input
-        if input_channels != 16 * k:
-            model_x.append(tf.keras.layers.Conv2D(16 * k, (1, 1), activation='linear', padding=1, kernel_initializer = self.conv_w_init))
+        # # Check if input number of filters is same as 16 * k, else create convolution2d for this input
+        # if input_channels != 16 * k:
+        #     model_x.append(tf.keras.layers.Conv2D(16 * k, (1, 1), activation='linear', padding=1, kernel_initializer = self.conv_w_init))
 
-        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init)) 
+        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg)) 
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis)) 
         model_y.append( tf.keras.layers.Activation('relu'))
 
-        if dropout > 0.0:
-            model_y.append(tf.keras.layers.Dropout(dropout)(x)) 
+        # if dropout > 0.0:
+        #     model_y.append(tf.keras.layers.Dropout(dropout)(x)) 
 
-        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
+        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
@@ -62,16 +63,16 @@ class WRNModel(tf.keras.Model):
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
         if stride != 1 or input_channels != 32 * k:
-            model_x.append(tf.keras.layers.Conv2D(32 * k, (1, 1), strides = stride, padding=1, kernel_initializer = self.conv_w_init))
+            model_x.append(tf.keras.layers.Conv2D(32 * k, (1, 1), strides = stride, padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         else:
-            model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
+            model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
-        if dropout > 0.0:
-            model_y.append(tf.keras.layers.Dropout(dropout))
+        # if dropout > 0.0:
+        #     model_y.append(tf.keras.layers.Dropout(dropout))
 
-        model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
+        model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
@@ -87,16 +88,16 @@ class WRNModel(tf.keras.Model):
         channel_axis = 1 if K.image_dim_ordering() == 'th' else -1
 
         if stride != 1 or input_channels != 64 * k:
-            model_x.append(tf.keras.layers.Conv2D(64 * k, (1, 1), strides = stride,  padding=1, kernel_initializer = self.conv_w_init))
+            model_x.append(tf.keras.layers.Conv2D(64 * k, (1, 1), strides = stride,  padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         else:
-            model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
+            model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
         if dropout > 0.0:
             model_y.append(tf.keras.layers.Dropout(dropout))
 
-        model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init))
+        model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
@@ -168,14 +169,14 @@ class WRNModel(tf.keras.Model):
 
         # Adding average pool instead of GAP! 
         if include_top:
-            model.append([[tf.keras.layers.AveragePooling2D(pool_size=8), tf.keras.layers.Dense(nb_classes, activation=activation)]])
+            model.append([[tf.keras.layers.AveragePooling2D(pool_size=8), tf.keras.Flatten(), tf.keras.layers.Dense(nb_classes, activation=activation, , kernel_regularizer=self.l2_reg)]])
 
         return model
 
     def __init__(self, depth=28, multiplier=4, dropout_rate=0.0,
                         include_top=True,
                         input_tensor=None, input_shape=None,
-                        classes=10, activation='softmax'):
+                        classes=10, activation='softmax', wd = 1e-4):
 
         super(WRNModel, self).__init__()
         
@@ -183,7 +184,8 @@ class WRNModel(tf.keras.Model):
         self.conv_w_init = tf.initializers.random_normal(mean=0.0, stddev= np.sqrt(2.0/n))
         self.bn_w_init = tf.constant_initializer(1.0)
         self.bn_b_init = tf.constant_initializer(0.0)
-        
+        self.wd = wd
+        self.l2_reg = tf.keras.regularizers.l2(wd)
         self.depth = depth
         self.multiplier = multiplier
         self.dropout_rate = dropout_rate
