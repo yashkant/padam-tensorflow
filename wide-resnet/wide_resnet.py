@@ -158,7 +158,8 @@ class WRNModel(tf.keras.Model):
         for i in range(N):
             if(i == 0): 
                 channels, blk = self.__conv3_block(channels, multiplier, dropout, stride = 2)
-            channels, blk = self.__conv3_block(channels, multiplier, dropout)
+            else:
+                channels, blk = self.__conv3_block(channels, multiplier, dropout)
 
             model.append(blk)
             nb_conv += 2
@@ -169,7 +170,8 @@ class WRNModel(tf.keras.Model):
         for i in range(N):
             if(i == 0): 
                 channels, blk = self.__conv3_block(channels, multiplier, dropout, stride = 2)
-            channels, blk = self.__conv3_block(channels, multiplier, dropout)
+            else:
+                channels, blk = self.__conv3_block(channels, multiplier, dropout)
 
             model.append(blk)
             nb_conv += 2
