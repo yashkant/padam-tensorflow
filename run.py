@@ -112,10 +112,15 @@ epochs = hp['epoch']
 
 # resnet cifar10 training and plots
 
-model = Resnet(training= True, data_format= K.image_data_format(), classes = 10)
+
 history_resnet = {}
 for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     op = optim_params[optimizer]
+    if optimizer is not 'adamw':
+        model = Resnet(training= True, data_format= K.image_data_format(), classes = 10, wt_decay = op['weight_decay'])
+    else:
+        model = Resnet(training= True, data_format= K.image_data_format(), classes = 10, wt_decay = 0)
+    
     if optimizer == 'padam':
         optim = Padam(learning_rate=op['lr'], p=op['p'], beta1=op['b1'], beta2=op['b2'])
     elif optimizer == 'adam':
@@ -134,7 +139,7 @@ for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     dummy_x = tf.zeros((1, 32, 32, 3))
     #model._set_inputs(dummy_x)
     #print(model(dummy_x).shape)    
-    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs, validation_data=(testX, testY), verbose=1)
+    #history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs, validation_data=(testX, testY), verbose=1)
 
 
 #train plot
