@@ -109,6 +109,10 @@ testX = testX/255
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
+# Use below for node not found exception with one-hot
+# testY = testY.astype(np.int64)
+# trainY = trainY.astype(np.int64)
+
 testY = tf.one_hot(testY, depth=10).numpy()
 trainY = tf.one_hot(trainY, depth=10).numpy()
 
