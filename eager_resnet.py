@@ -119,8 +119,8 @@ class Resnet(tf.keras.Model):
     
         self.model = self._create_ResnetModel(filters = initial_filters)
 
-        self.avg_pool = tf.keras.layers.GlobalAveragePooling2D()
-        self.fc = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))
+        #self.avg_pool = tf.keras.layers.GlobalAveragePooling2D()
+        #self.fc = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))
     
     def call(self, inputs, training=None, mask=None):
         """if self.data_format == 'channels_first':
@@ -160,13 +160,18 @@ class Resnet(tf.keras.Model):
         # ResNet does an Average Pooling layer over pool_size,
         # but that is the same as doing a reduce_mean. We do a reduce_mean
         # here because it performs better than AveragePooling2D.
-        #axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
-        #inputs = tf.reduce_mean(inputs, axes, keepdims=True)
+        axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
+        inputs = tf.reduce_mean(inputs, axes, keepdims=True)
+        
+        inputs = tf.squeeze(inputs, axes)
+        inputs = tf.layers.dense(inputs=inputs, units=self.num_classes, kernel_regularizer=regularizers.l2(self.wd))
+        inputs = tf.identity(inputs, 'final_dense')
+        return inputs
     
         #inputs = tf.squeeze(inputs, axes)
-        inputs = self.avg_pool(inputs)
-        inputs = self.fc(inputs)   
-        return inputs
+        #inputs = self.avg_pool(inputs)
+        #inputs = self.fc(inputs)   
+        #return inputs
 
 
 if __name__ == '__main__':
