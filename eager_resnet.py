@@ -119,8 +119,9 @@ class Resnet(tf.keras.Model):
     
         self.model = self._create_ResnetModel(filters = initial_filters)
 
-        #self.avg_pool = tf.keras.layers.GlobalAveragePooling2D()
-        #self.fc = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))
+        self.avg_pool = tf.keras.layers.GlobalAveragePooling2D()
+        self.flatten = tf.keras.layers.Flatten(data_format = self.data_format)
+        self.fc = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))
     
     def call(self, inputs, training=None, mask=None):
         """if self.data_format == 'channels_first':
@@ -128,10 +129,10 @@ class Resnet(tf.keras.Model):
             # This provides a large performance boost on GPU. See
             # https://www.tensorflow.org/performance/performance_guide#data_formats
             inputs = tf.transpose(inputs, [0, 3, 1, 2])"""
-        
+        #print(inputs.shape)
         for i in range(len(self.model[0][0])):
             inputs = self.model[0][0][i](inputs)
-    
+        #print(inputs.shape)
         for blk in range(self.num_blocks):
             blk_index = blk+1
             for basic_bblk in range(self.block_list[blk]):
@@ -154,24 +155,28 @@ class Resnet(tf.keras.Model):
                 #print(short.shape)
                 inputs = inputs + short
                 inputs = tf.nn.relu(inputs)
-    
+        #print(inputs.shape)
         # The current top layer has shape
         # `batch_size x pool_size x pool_size x final_size`.
         # ResNet does an Average Pooling layer over pool_size,
         # but that is the same as doing a reduce_mean. We do a reduce_mean
         # here because it performs better than AveragePooling2D.
-        axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
+        """axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
         inputs = tf.reduce_mean(inputs, axes, keepdims=True)
-        
+        print(inputs.shape)
         inputs = tf.squeeze(inputs, axes)
+        print(inputs.shape)
         inputs = tf.layers.dense(inputs=inputs, units=self.classes, kernel_regularizer=regularizers.l2(self.wd))
-        inputs = tf.identity(inputs, 'final_dense')
-        return inputs
+        print(inputs.shape)
+        return inputs"""
     
         #inputs = tf.squeeze(inputs, axes)
-        #inputs = self.avg_pool(inputs)
-        #inputs = self.fc(inputs)   
-        #return inputs
+        inputs = self.avg_pool(inputs)
+        inputs = self.flatten(inputs)
+        #print(inputs.shape)
+        inputs = self.fc(inputs)
+        #print(inputs.shape)
+        return inputs
 
 
 if __name__ == '__main__':
@@ -202,7 +207,7 @@ if __name__ == '__main__':
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
-    dummy_x = tf.zeros((1, 32, 32, 3))
+    dummy_x = tf.zeros((10, 32, 32, 3))
     model._set_inputs(dummy_x)
     print(model(dummy_x).shape)
 
