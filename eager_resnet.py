@@ -172,11 +172,12 @@ class Resnet(tf.keras.Model):
     
         #inputs = tf.squeeze(inputs, axes)
         inputs = self.avg_pool(inputs)
+        #print(inputs.shape)
         inputs = self.flatten(inputs)
         #print(inputs.shape)
         inputs = self.fc(inputs)
         #print(inputs.shape)
-        return inputs
+        return tf.nn.softmax(inputs)
 
 
 if __name__ == '__main__':
@@ -207,7 +208,7 @@ if __name__ == '__main__':
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
-    dummy_x = tf.zeros((10, 32, 32, 3))
+    dummy_x = tf.zeros((10, 300, 300, 3))
     model._set_inputs(dummy_x)
     print(model(dummy_x).shape)
 
