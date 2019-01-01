@@ -169,7 +169,7 @@ class WRNModel(tf.keras.Model):
 
         # Adding average pool instead of GAP! 
         if include_top:
-            model.append([[tf.keras.layers.AveragePooling2D(pool_size=8), tf.keras.Flatten(), tf.keras.layers.Dense(nb_classes, activation=activation, , kernel_regularizer=self.l2_reg)]])
+            model.append([[tf.keras.layers.AveragePooling2D(pool_size=8), tf.keras.Flatten(), tf.keras.layers.Dense(nb_classes, activation=activation, kernel_regularizer=self.l2_reg)]])
 
         return model
 
@@ -181,7 +181,7 @@ class WRNModel(tf.keras.Model):
         super(WRNModel, self).__init__()
         
         self.n = int((depth-4)/6)
-        self.conv_w_init = tf.initializers.random_normal(mean=0.0, stddev= np.sqrt(2.0/n))
+        self.conv_w_init = tf.initializers.random_normal(mean=0.0, stddev= np.sqrt(2.0/self.n))
         self.bn_w_init = tf.constant_initializer(1.0)
         self.bn_b_init = tf.constant_initializer(0.0)
         self.wd = wd
