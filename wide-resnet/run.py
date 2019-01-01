@@ -16,7 +16,7 @@ from padam import Padam
 from amsgrad import AMSGrad
 
 dataset = 'cifar10'
-optimizer = 'adamw'
+optimizer = 'adam'
 
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
@@ -117,6 +117,8 @@ if optimizer is 'adamw':
 else:
     model = WRNModel(depth=16, multiplier=4, wd = op['weight_decay'])
 
+model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
+
 
 learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
@@ -132,6 +134,8 @@ elif optimizer == 'amsgrad':
     optim = AMSGrad(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
 elif optimizer == 'sgd':
     optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
+
+loss = 'categorical_crossentropy'
 
 model.compile(optimizer=optim, loss=loss,
                   metrics=['accuracy'], global_step=tf.train.get_global_step())
