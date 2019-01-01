@@ -132,7 +132,7 @@ for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
                       metrics=['accuracy'], global_step=tf.train.get_global_step())
     
     dummy_x = tf.zeros((1, 32, 32, 3))
-    model._set_inputs(dummy_x)
+    #model._set_inputs(dummy_x)
     #print(model(dummy_x).shape)    
     history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs, validation_data=(testX, testY), verbose=1)
 
@@ -141,9 +141,10 @@ for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
 plt.figure(1)
 for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     op = optim_params[optimizer]
-	train_loss = history_resnet[optimizer].history('loss')
-	epoch_count = range(1, len(train_loss) + 1)
-	plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
+    train_loss = history_resnet[optimizer].history('loss')
+
+    epoch_count = range(1, len(train_loss) + 1)
+    plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
 plt.legend(['padam', 'adam', 'adamw', 'amsgrad', 'sgd'])
 plt.xlabel('Epochs')
 plt.ylabel('Train Loss')
@@ -152,9 +153,9 @@ plt.ylabel('Train Loss')
 plt.figure(2)
 for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     op = optim_params[optimizer]
-	test_loss = history_resnet[optimizer].history('val_loss')
-	epoch_count = range(1, len(test_loss) + 1)
-	plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
+    test_loss = history_resnet[optimizer].history('val_loss')
+    epoch_count = range(1, len(test_loss) + 1)
+    plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
 plt.legend(['padam', 'adam', 'adamw', 'amsgrad', 'sgd'])
 plt.xlabel('Epochs')
 plt.ylabel('Test Error')
