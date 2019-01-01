@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import os 
 import sys
-# os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+os.environ["CUDA_VISIBLE_DEVICES"]= "1"
 
 import tensorflow as tf
 import keras.backend as K
@@ -95,11 +95,13 @@ testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
+testY = testY.astype(np.int64)
+trainY = trainY.astype(np.int64)
+
+
 testY = tf.one_hot(testY, depth=10).numpy()
 trainY = tf.one_hot(trainY, depth=10).numpy()
 
-testY = testY.astype(np.int64)
-testX = testX.astype(np.int64)
 
 
 
