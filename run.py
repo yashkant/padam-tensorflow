@@ -17,6 +17,9 @@ from amsgrad import AMSGrad
 from eager_resnet import Resnet
 from padam import Padam
 
+dataset = 'cifar10'
+optimizer = 'adamw'
+
 hyperparameters = {
     'cifar10': {
         'epoch': 200,
