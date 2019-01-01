@@ -86,6 +86,16 @@ optim_params = {
 if dataset == 'cifar10':
     from keras.datasets import cifar10
     (trainX, trainY), (testX, testY) = cifar10.load_data()
+    """print(trainX.shape)
+    print(trainY.shape)
+    print(testX.shape)
+    print(testY.shape)"""
+    #(trainX, trainY), (testX, testY) = (trainX[:100], trainY[:100]), (testX[:100], testY[:100] )
+    #print(type(trainY[0][0]))
+    """print(trainX.shape)
+    print(trainY.shape)
+    print(testX.shape)
+    print(testY.shape)"""
 elif dataset == 'cifar100':
     from keras.datasets import cifar100
     (trainX, trainY), (testX, testY) = cifar100.load_data()
@@ -98,12 +108,10 @@ testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
-testY = testY.astype(np.int64)
-trainY = trainY.astype(np.int64)
-
-
-testY = tf.one_hot(testY, depth=10).numpy()
-trainY = tf.one_hot(trainY, depth=10).numpy()
+#testY = testY.astype(np.int64)
+#trainY = trainY.astype(np.int64)
+#testY = tf.one_hot(testY, depth=10).numpy()
+#trainY = tf.one_hot(trainY, depth=10).numpy()
 
 dataset = 'cifar10'
 hp = hyperparameters[dataset]
@@ -136,10 +144,10 @@ for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     model.compile(optimizer=optim, loss='categorical_crossentropy',
                       metrics=['accuracy'], global_step=tf.train.get_global_step())
     
-    dummy_x = tf.zeros((1, 32, 32, 3))
+    #dummy_x = tf.zeros((1, 32, 32, 3))
     #model._set_inputs(dummy_x)
     #print(model(dummy_x).shape)    
-    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs, validation_data=(testX, testY), verbose=1)
+    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size= 20 , epochs= epochs, validation_data=(testX, testY), verbose=1)
 
 
 #train plot
