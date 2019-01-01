@@ -164,7 +164,7 @@ class Resnet(tf.keras.Model):
         inputs = tf.reduce_mean(inputs, axes, keepdims=True)
         
         inputs = tf.squeeze(inputs, axes)
-        inputs = tf.layers.dense(inputs=inputs, units=self.num_classes, kernel_regularizer=regularizers.l2(self.wd))
+        inputs = tf.layers.dense(inputs=inputs, units=self.classes, kernel_regularizer=regularizers.l2(self.wd))
         inputs = tf.identity(inputs, 'final_dense')
         return inputs
     
