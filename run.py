@@ -11,6 +11,10 @@ tf.enable_eager_execution()
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
 
+
+from keras.callbacks import CSVLogger
+
+
 import matplotlib.pyplot as plt
 
 from amsgrad import AMSGrad
@@ -147,7 +151,10 @@ for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     #dummy_x = tf.zeros((1, 32, 32, 3))
     #model._set_inputs(dummy_x)
     #print(model(dummy_x).shape)    
-    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size= 20 , epochs= epochs, validation_data=(testX, testY), verbose=1)
+
+    csv_logger = CSVLogger('log.csv', append=True, separator=';')
+    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size= batch_size , epochs= epochs, validation_data=(testX, testY), verbose=1, callbacks=[csv_logger])
+
 
 
 #train plot
