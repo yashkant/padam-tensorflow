@@ -31,7 +31,7 @@ class Resnet(tf.keras.Model):
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
             return model_x
         else : 
-        	return tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' )
+            return tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' )
         #model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
               
      
@@ -101,7 +101,7 @@ class Resnet(tf.keras.Model):
     # resnet with basic building blocks
     def __init__(self, training, data_format, initial_filters=64, block_list=[2, 2, 2, 2], classes=10):
 
-    	"""training: Either True or False, whether we are currently training the
+        """training: Either True or False, whether we are currently training the
            model. Needed for batch norm.
           data_format: The input format ('channels_last' or 'channels_first')."""
     
