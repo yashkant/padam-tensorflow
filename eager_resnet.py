@@ -10,6 +10,7 @@ tf.enable_eager_execution()
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
+from keras import regularizers
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
@@ -31,7 +32,7 @@ class Resnet(tf.keras.Model):
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
             return model_x
         else : 
-            return tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' )
+            return tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling', kernel_regularizer=regularizers.l2(self.wd) )
         #model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
               
      
@@ -99,7 +100,7 @@ class Resnet(tf.keras.Model):
     
     
     # resnet with basic building blocks
-    def __init__(self, training, data_format, initial_filters=64, block_list=[2, 2, 2, 2], classes=10):
+    def __init__(self, training, data_format, initial_filters=64, block_list=[2, 2, 2, 2], classes=10, wt_decay = 0.001):
 
         """training: Either True or False, whether we are currently training the
            model. Needed for batch norm.
@@ -111,11 +112,15 @@ class Resnet(tf.keras.Model):
         self.block_list = block_list
         self.num_blocks = len(block_list)
         self.data_format = data_format
+        self.wd = wt_decay
         self.classes = classes
         self.training = training
         self.channel_axis = 1 if self.data_format == 'channels_first' else -1
     
         self.model = self._create_ResnetModel(filters = initial_filters)
+
+        self.avg_pool = tf.keras.layers.GlobalAveragePooling2D()
+        self.fc = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))
     
     def call(self, inputs, training=None, mask=None):
         """if self.data_format == 'channels_first':
@@ -155,12 +160,12 @@ class Resnet(tf.keras.Model):
         # ResNet does an Average Pooling layer over pool_size,
         # but that is the same as doing a reduce_mean. We do a reduce_mean
         # here because it performs better than AveragePooling2D.
-        axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
-        inputs = tf.reduce_mean(inputs, axes, keepdims=True)
+        #axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
+        #inputs = tf.reduce_mean(inputs, axes, keepdims=True)
     
-        inputs = tf.squeeze(inputs, axes)
-        inputs = tf.layers.dense(inputs=inputs, units=self.classes)
-    
+        #inputs = tf.squeeze(inputs, axes)
+        inputs = self.avg_pool(inputs)
+        inputs = self.fc(inputs)   
         return inputs
 
 
