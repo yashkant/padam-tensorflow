@@ -135,7 +135,7 @@ class WRNModel(tf.keras.Model):
         N = (depth - 4) // 6
 
         model = []
-        channels, blk = self.__conv1_block()
+        channels, blk = self.__conv1_block(multiplier)
         model.append(blk)
         nb_conv = 4
 
