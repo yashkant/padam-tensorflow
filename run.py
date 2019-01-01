@@ -139,11 +139,11 @@ for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     dummy_x = tf.zeros((1, 32, 32, 3))
     #model._set_inputs(dummy_x)
     #print(model(dummy_x).shape)    
-    #history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs, validation_data=(testX, testY), verbose=1)
+    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs, validation_data=(testX, testY), verbose=1)
 
 
 #train plot
-"""plt.figure(1)
+plt.figure(1)
 for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     op = optim_params[optimizer]
     train_loss = history_resnet[optimizer].history('loss')
