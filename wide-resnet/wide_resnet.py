@@ -49,7 +49,7 @@ class WRNModel(tf.keras.Model):
 
         # if dropout > 0.0:
         #     model_y.append(tf.keras.layers.Dropout(dropout)(x)) 
-        model.append(tf.keras.layers.ZeroPadding2D(padding=1))
+        model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
         model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
@@ -176,7 +176,7 @@ class WRNModel(tf.keras.Model):
 
         # Adding average pool instead of GAP! 
         if include_top:
-            model.append([[tf.keras.layers.AveragePooling2D(pool_size=8), tf.keras.Flatten(), tf.keras.layers.Dense(nb_classes, activation=activation, kernel_regularizer=self.l2_reg)]])
+            model.append([[tf.keras.layers.AveragePooling2D(pool_size=8), tf.keras.layers.Flatten(), tf.keras.layers.Dense(nb_classes, activation=activation, kernel_regularizer=self.l2_reg)]])
 
         return model
 
