@@ -42,39 +42,39 @@ optim_params = {
         'p': 0.125,
         'b1': 0.9,
         'b2': 0.999, 
-        'color': 'darkred'
-        'linestyle':'-'
+        'color': 'darkred',
+        'linestyle':'-',
     },
     'adam': {
         'weight_decay': 0.0001,
         'lr': 0.001,
         'b1': 0.9,
-        'b2': 0.99
-        'color': 'orange'
-        'linestyle':'--'
+        'b2': 0.99,
+        'color': 'orange',
+        'linestyle':'--',
     },
     'adamw': {
         'weight_decay': 0.025,
         'lr': 0.001,
         'b1': 0.9,
-        'b2': 0.99
-        'color': 'magenta'
-        'linestyle':'--'
+        'b2': 0.99,
+        'color': 'magenta',
+        'linestyle':'--',
     },
     'amsgrad': {
         'weight_decay': 0.0001,
         'lr': 0.001,
         'b1': 0.9,
         'b2': 0.99,
-        'color' : 'darkgreen'
-        'linestyle':'-.'
+        'color' : 'darkgreen',
+        'linestyle':'-.',
     },
     'sgd': {
         'weight_decay': 0.0005,
         'lr': 0.1,
         'm': 0.9,
-        'color': 'blue'
-        'linestyle':'-'
+        'color': 'blue',
+        'linestyle':'-',
     }
 }
 
@@ -95,11 +95,12 @@ testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
+testY = testY.astype(np.int64)
+trainY = trainY.astype(np.int64)
+
+
 testY = tf.one_hot(testY, depth=10).numpy()
 trainY = tf.one_hot(trainY, depth=10).numpy()
-
-testY = testY.astype(np.int64)
-testX = testX.astype(np.int64)
 
 
 
