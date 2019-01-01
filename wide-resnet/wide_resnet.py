@@ -13,6 +13,8 @@ import keras.backend as K
 import numpy as np 
 
 
+# keras.layers.ZeroPadding2D(padding="VALID")
+
 
 class WRNModel(tf.keras.Model):
 
@@ -20,7 +22,8 @@ class WRNModel(tf.keras.Model):
 
         model = []
         out_channels = 16*multiplier
-        model.append(tf.keras.layers.Conv2D(out_channels, (3, 3), padding= 1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
+        model.append(tf.keras.layers.ZeroPadding2D(padding=1))
+        model.append(tf.keras.layers.Conv2D(out_channels, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
         # TODO: Fix batchnorm weight initialization
@@ -38,16 +41,16 @@ class WRNModel(tf.keras.Model):
 
         # # Check if input number of filters is same as 16 * k, else create convolution2d for this input
         # if input_channels != 16 * k:
-        #     model_x.append(tf.keras.layers.Conv2D(16 * k, (1, 1), activation='linear', padding=1, kernel_initializer = self.conv_w_init))
-
-        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg)) 
+        #     model_x.append(tf.keras.layers.Conv2D(16 * k, (1, 1), activation='linear', padding="VALID", kernel_initializer = self.conv_w_init))
+        model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
+        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg)) 
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis)) 
         model_y.append( tf.keras.layers.Activation('relu'))
 
         # if dropout > 0.0:
         #     model_y.append(tf.keras.layers.Dropout(dropout)(x)) 
-
-        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
+        model.append(tf.keras.layers.ZeroPadding2D(padding=1))
+        model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
@@ -63,16 +66,18 @@ class WRNModel(tf.keras.Model):
         channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
         if stride != 1 or input_channels != 32 * k:
-            model_x.append(tf.keras.layers.Conv2D(32 * k, (1, 1), strides = stride, padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
-        else:
-            model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
+            model_x.append(tf.keras.layers.Conv2D(32 * k, (1, 1), strides = stride, padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
+
+        model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
+        model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
         # if dropout > 0.0:
         #     model_y.append(tf.keras.layers.Dropout(dropout))
-
-        model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
+            
+        model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
+        model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
@@ -88,16 +93,18 @@ class WRNModel(tf.keras.Model):
         channel_axis = 1 if K.image_dim_ordering() == 'th' else -1
 
         if stride != 1 or input_channels != 64 * k:
-            model_x.append(tf.keras.layers.Conv2D(64 * k, (1, 1), strides = stride,  padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
-        else:
-            model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
+            model_x.append(tf.keras.layers.Conv2D(64 * k, (1, 1), strides = stride,  padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
+        
+        model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
+        model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
-        if dropout > 0.0:
-            model_y.append(tf.keras.layers.Dropout(dropout))
+        # if dropout > 0.0:
+        #     model_y.append(tf.keras.layers.Dropout(dropout))
 
-        model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding=1, kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
+        model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
+        model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
         model_y.append(tf.keras.layers.Activation('relu'))
 
