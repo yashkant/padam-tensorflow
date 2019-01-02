@@ -152,9 +152,9 @@ datagen_test = ImageDataGenerator(
                             )
 
 model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
-                                 validation_data = (testX, testY), verbose=1)
+                                 validation_data = datagen_test.flow(testX, testY, batch_size = batch_size) , verbose=1)
 
-scores = model.evaluate(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
+scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
 print("Final test loss and accuracy :", scores)
 
 
