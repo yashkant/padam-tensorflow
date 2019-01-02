@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import os 
 import sys
-os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+#os.environ["CUDA_VISIBLE_DEVICES"]= "1"
 
 import tensorflow as tf
 import keras.backend as K
@@ -90,19 +90,12 @@ optim_params = {
 if dataset == 'cifar10':
     from keras.datasets import cifar10
     (trainX, trainY), (testX, testY) = cifar10.load_data()
-    """print(trainX.shape)
-    print(trainY.shape)
-    print(testX.shape)
-    print(testY.shape)"""
-    #(trainX, trainY), (testX, testY) = (trainX[:100], trainY[:100]), (testX[:100], testY[:100] )
-    #print(type(trainY[0][0]))
-    """print(trainX.shape)
-    print(trainY.shape)
-    print(testX.shape)
-    print(testY.shape)"""
+
 elif dataset == 'cifar100':
     from keras.datasets import cifar100
     (trainX, trainY), (testX, testY) = cifar100.load_data()
+
+#(trainX, trainY), (testX, testY) = (trainX[:100], trainY[:100]), (testX[:100], testY[:100] )
 
 trainX = trainX.astype('float32')
 trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
@@ -111,6 +104,8 @@ testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
+
+tf.train.create_global_step()
 
 #testY = testY.astype(np.int64)
 #trainY = trainY.astype(np.int64)
@@ -121,40 +116,49 @@ dataset = 'cifar10'
 hp = hyperparameters[dataset]
 batch_size = hp['batch_size']
 epochs = hp['epoch']
+train_size = trainX.shape[0]
+
 
 # resnet cifar10 training and plots
 
 
+
 history_resnet = {}
 for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
+
     op = optim_params[optimizer]
+
+    if optimizer == 'adamw' and dataset=='imagenet':
+        op['weight_decay'] = 0.05 
+
+
     if optimizer is not 'adamw':
         model = Resnet(training= True, data_format= K.image_data_format(), classes = 10, wt_decay = op['weight_decay'])
     else:
         model = Resnet(training= True, data_format= K.image_data_format(), classes = 10, wt_decay = 0)
-    
+
+    learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
+                                       hp['decay_after']*train_size, 0.1, staircase=True)
     if optimizer == 'padam':
-        optim = Padam(learning_rate=op['lr'], p=op['p'], beta1=op['b1'], beta2=op['b2'])
+        optim = Padam(learning_rate=learning_rate, p=op['p'], beta1=op['b1'], beta2=op['b2'])
     elif optimizer == 'adam':
-        optim = tf.train.AdamOptimizer(learning_rate=op['lr'], beta1=op['b1'], beta2=op['b2'])
+        optim = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
     elif optimizer == 'adamw':
         adamw = tf.contrib.opt.extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
-        optim = adamw(weight_decay=op['weight_decay'], learning_rate=op['lr'],  beta1=op['b1'], beta2=op['b2'])
+        optim = adamw(weight_decay=op['weight_decay'], learning_rate=learning_rate,  beta1=op['b1'], beta2=op['b2'])
     elif optimizer == 'amsgrad':
-        optim = AMSGrad(learning_rate=op['lr'], beta1=op['b1'], beta2=op['b2'])
+        optim = AMSGrad(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
     elif optimizer == 'sgd':
-        optim = tf.train.MomentumOptimizer(learning_rate=op['lr'], momentum=op['m'])
-    
-    model.compile(optimizer=optim, loss='categorical_crossentropy',
-                      metrics=['accuracy'], global_step=tf.train.get_global_step())
-    
-    #dummy_x = tf.zeros((1, 32, 32, 3))
-    #model._set_inputs(dummy_x)
-    #print(model(dummy_x).shape)    
+        optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
+
+    model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
+
+   #dummy_x = tf.zeros((1, 32, 32, 3))
+   #model._set_inputs(dummy_x)
+   #print(model(dummy_x).shape)
 
     csv_logger = CSVLogger('log.csv', append=True, separator=';')
-    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size= batch_size , epochs= epochs, validation_data=(testX, testY), verbose=1, callbacks=[csv_logger])
-
+    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size= batch_size, epochs= epochs, validation_data=(testX, testY), verbose=1, callbacks=[csv_logger])
 
 
 #train plot
@@ -162,7 +166,6 @@ plt.figure(1)
 for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
     op = optim_params[optimizer]
     train_loss = history_resnet[optimizer].history('loss')
-
     epoch_count = range(1, len(train_loss) + 1)
     plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
 plt.legend(['padam', 'adam', 'adamw', 'amsgrad', 'sgd'])

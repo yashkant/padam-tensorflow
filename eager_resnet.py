@@ -27,17 +27,19 @@ class Resnet(tf.keras.Model):
         # Returns output feature map of same spatial size as input if stride=1 else 
         # halves the input dimensions.
         
-        initializer = tf.keras.initializers.VarianceScaling(scale=1.0/(6*kernel_size), mode='fan_in', distribution='uniform', seed=None)
         if strides > 1:
             pad_total = kernel_size - 1
             pad_beg = pad_total // 2
             pad_end = pad_total - pad_beg
 
-            model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False, kernel_initializer=initializer )])
+            model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),
+            	tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False,
+            	          kernel_initializer=  tf.keras.initializers.VarianceScaling(scale=1.0/(6*kernel_size), mode='fan_in',distribution='uniform', seed=None), kernel_regularizer=regularizers.l2(self.wd))])
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
             return model_x
         else : 
-            return tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer = initializer, kernel_regularizer=regularizers.l2(self.wd) )
+            return tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
+             kernel_initializer =  tf.keras.initializers.VarianceScaling(scale=1.0/(6*kernel_size), mode='fan_in',distribution='uniform', seed=None), kernel_regularizer=regularizers.l2(self.wd) )
 
         #model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
               
@@ -53,11 +55,10 @@ class Resnet(tf.keras.Model):
   
         
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides = strides))
-        layer_a.append(self.bn)
+        layer_a.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True, scale=True, trainable=self.training, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0)))
         layer_a.append(self.relu)
-    
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides=1))
-        layer_a.append(self.bn)
+        layer_a.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True, scale=True, trainable=self.training, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0)))
     
         return layer_a
     
@@ -88,7 +89,7 @@ class Resnet(tf.keras.Model):
         model = []    
         # conv1
         initial_layer = self.conv2d_fixed_padding(filters = 64, kernel_size = 3, strides = 1)      
-        model.append([[initial_layer, self.bn]])
+        model.append([[initial_layer, tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True, scale=True, trainable=self.training, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0))]])
         
         # conv2, conv3, conv4, conv5
         for i in range(len(self.block_list)):
@@ -116,12 +117,12 @@ class Resnet(tf.keras.Model):
         self.classes = classes
         self.training = training
         self.channel_axis = 1 if self.data_format == 'channels_first' else -1
+        
+        
+        self.bn = tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True, scale=True, trainable=self.training, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0))
+        self.relu = tf.keras.layers.Activation('relu')
 
-        self.bn = tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
-            scale=True, trainable=self.training, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0))
-        self.relu = tf.keras.activations.relu()
-
-        self.model = self._create_ResnetModel(filters = initial_filters)
+        self.model = self._create_ResnetModel(filters = self.initial_filters)
 
         self.avg_pool = tf.keras.layers.GlobalAveragePooling2D()
         self.flatten = tf.keras.layers.Flatten(data_format = self.data_format)
@@ -150,7 +151,8 @@ class Resnet(tf.keras.Model):
                     #sprint(blk)
                     #print(short.shape)
 
-                    short = self.bn(short)
+                    short = tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
+                                     scale=True, trainable=training, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0))(short)
 
                     #print(short.shape)
                 else :
@@ -162,7 +164,6 @@ class Resnet(tf.keras.Model):
                 #print(inputs.shape)  
                 #print(short.shape)
                 inputs = inputs + short
-
                 inputs = self.relu(inputs)
 
         #print(inputs.shape)
@@ -185,9 +186,10 @@ class Resnet(tf.keras.Model):
         #print(inputs.shape)
         inputs = self.flatten(inputs)
         #print(inputs.shape)
-
+        
+        
         inputs = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd), kernel_initializer =tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None)
-                                             , bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None))(inputs)
+                                           , bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None))(inputs)
 
         #print(inputs.shape)
         return tf.nn.softmax(inputs)
