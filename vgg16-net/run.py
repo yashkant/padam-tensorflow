@@ -16,7 +16,7 @@ from padam import Padam
 from amsgrad import AMSGrad
 
 dataset = 'cifar10'
-optimizer = 'adamw'
+optimizer = 'adam'
 
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
@@ -24,6 +24,13 @@ if dataset == 'cifar10':
 elif dataset == 'cifar100':
     MEAN = [0.507, 0.487, 0.441]
     STD_DEV = [0.267, 0.256, 0.276]
+
+def preprocess(t):
+    paddings = tf.constant([[2, 2,], [2, 2],[0,0]])
+    t = tf.pad(t, paddings, 'CONSTANT')
+    t = tf.image.random_crop(t, [32, 32, 3])
+    t = normalize(t) 
+    return t
 
 def normalize(t):
     t = tf.div(tf.subtract(t, MEAN), STD_DEV) 
@@ -97,7 +104,6 @@ nb_epoch = 1
 img_rows, img_cols = 32, 32
 epochs = hp['epoch']
 train_size = trainX.shape[0]
-print(train_size)
 
 trainX = trainX.astype('float32')
 # trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
@@ -106,8 +112,8 @@ testX = testX.astype('float32')
 # testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 testX = testX/255
 
-trainY = kutils.to_categorical(trainY)
-testY = kutils.to_categorical(testY)
+# trainY = kutils.to_categorical(trainY)
+# testY = kutils.to_categorical(testY)
 
 # Use below for node not found exception with one-hot
 # testY = testY.astype(np.int64)
@@ -141,10 +147,9 @@ elif optimizer == 'sgd':
     optim = tf.train.MomentumOptimizer(learning_rate=op['lr'], momentum=op['m'])
 
 dummy_x = tf.zeros((batch_size, 32, 32, 3))
-tf_train_labels = tf.zeros((batch_size, 10))
 
 model._set_inputs(dummy_x)
-dummy_y = model(dummy_x)
+model(dummy_x)
 print(model(dummy_x).shape)
 
 loss = 'categorical_crossentropy'
@@ -154,8 +159,8 @@ model.compile(optimizer=optim, loss=loss,
 
 from keras.preprocessing.image import ImageDataGenerator
 
-datagen_train = ImageDataGenerator(zoom_range=0.125,
-                            preprocessing_function=normalize,
+datagen_train = ImageDataGenerator(
+                            preprocessing_function=preprocess,
                             horizontal_flip=True,
                             )
 datagen_test = ImageDataGenerator(

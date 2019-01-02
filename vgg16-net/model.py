@@ -34,8 +34,8 @@ class VGG(tf.keras.Model):
                 layers.append(tf.keras.layers.MaxPooling2D((2, 2)))
             else:
                 layers.append(tf.keras.layers.Conv2D(x, (3, 3), padding='same', kernel_regularizer=regularizers.l2(self.wd)))
-                channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
-                layers.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
+                # channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
+                # layers.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
                 layers.append(tf.keras.layers.Activation('relu')) 
         return layers
 
@@ -49,8 +49,10 @@ class VGG(tf.keras.Model):
         prev_out = inputs
         for layer in self.convlayers:
             prev_out = layer(prev_out)
+        # print(prev_out)
         for layer in self.fc_layers:
             prev_out = layer(prev_out)
+            # print(prev_out)
         return tf.nn.softmax(prev_out)
 
 if __name__ == '__main__':
@@ -76,13 +78,13 @@ if __name__ == '__main__':
     # testX = testX.astype(np.int64)
 
 
-    model = VGG('test', 10)
+    model = VGG('VGG16', 10,0)
 
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
-    dummy_x = tf.zeros((1, 32, 32, 3))
-    model._set_inputs(dummy_x)
+    dummy_x = tf.random_normal([1, 32, 32, 3])
+    # model._set_inputs(dummy_x)
     print(model(dummy_x).shape)
     # train
     # model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
