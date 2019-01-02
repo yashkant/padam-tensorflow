@@ -99,6 +99,7 @@ elif dataset == 'cifar100':
     from keras.datasets import cifar100
     (trainX, trainY), (testX, testY) = cifar100.load_data()
 
+# (trainX, trainY), (testX, testY) = (trainX[:20], trainY[:20]), (testX[:20], testY[:20])
 batch_size = hp['batch_size']
 nb_epoch = 1
 img_rows, img_cols = 32, 32
@@ -168,7 +169,7 @@ datagen_test = ImageDataGenerator(
                             )
 
 model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
-                                 validation_data = (testX, testY), verbose=1)
+                                 validation_data = datagen_test.flow(testX, testY), verbose=1)
 
-scores = model.evaluate(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
+scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
 print("Final test loss and accuracy :", scores)
