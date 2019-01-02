@@ -11,12 +11,10 @@ tf.enable_eager_execution()
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
 
-
-from keras.callbacks import CSVLogger
-
+from keras.callbacks import ModelCheckpoint, CSVLogger
 
 import matplotlib.pyplot as plt
-
+import h5py
 from amsgrad import AMSGrad
 from eager_resnet import Resnet
 from padam import Padam
@@ -95,22 +93,22 @@ elif dataset == 'cifar100':
     from keras.datasets import cifar100
     (trainX, trainY), (testX, testY) = cifar100.load_data()
 
-#(trainX, trainY), (testX, testY) = (trainX[:100], trainY[:100]), (testX[:100], testY[:100] )
+#(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2] )
 
 trainX = trainX.astype('float32')
 trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
 testX = testX.astype('float32')
 testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 
-trainY = kutils.to_categorical(trainY)
-testY = kutils.to_categorical(testY)
+# trainY = kutils.to_categorical(trainY)
+# testY = kutils.to_categorical(testY)
 
 tf.train.create_global_step()
 
-#testY = testY.astype(np.int64)
-#trainY = trainY.astype(np.int64)
-#testY = tf.one_hot(testY, depth=10).numpy()
-#trainY = tf.one_hot(trainY, depth=10).numpy()
+testY = testY.astype(np.int64)
+trainY = trainY.astype(np.int64)
+testY = tf.one_hot(testY, depth=10).numpy()
+trainY = tf.one_hot(trainY, depth=10).numpy()
 
 dataset = 'cifar10'
 hp = hyperparameters[dataset]
@@ -121,10 +119,10 @@ train_size = trainX.shape[0]
 
 # resnet cifar10 training and plots
 
-
+optim_array = ['padam', 'adam',]# 'adamw', 'amsgrad', 'sgd']
 
 history_resnet = {}
-for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
+for optimizer in optim_array:
 
     op = optim_params[optimizer]
 
@@ -157,29 +155,47 @@ for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
    #model._set_inputs(dummy_x)
    #print(model(dummy_x).shape)
 
+    
     csv_logger = CSVLogger('log.csv', append=True, separator=';')
-    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size= batch_size, epochs= epochs, validation_data=(testX, testY), verbose=1, callbacks=[csv_logger])
+    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs, validation_data=(testX, testY), verbose=1, callbacks=[csv_logger])
+    filepath = 'model_'+optimizer+'_.h5'
+    # model.save(filepath)
+
+    # file=h5py.File(filepath,'r')
+    # weight = []
+    # for i in range(len(file.keys())):
+    #     weight.append(file['weight'+str(i)][:])
+    # model.set_weights(weight)
+
+    file = h5py.File(filepath,'w')
+    weight = model.get_weights()
+    for i in range(len(weight)):
+        file.create_dataset('weight'+str(i),data=weight[i])
+    file.close()
+
+    #csv_logger = CSVLogger('log.csv', append=True, separator=';')
+    #history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=1, epochs=2, validation_data=(testX, testY), verbose=1, callbacks=[csv_logger])
 
 
 #train plot
 plt.figure(1)
-for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
+for optimizer in optim_array:
     op = optim_params[optimizer]
-    train_loss = history_resnet[optimizer].history('loss')
+    train_loss = history_resnet[optimizer].history['loss']
     epoch_count = range(1, len(train_loss) + 1)
     plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
-plt.legend(['padam', 'adam', 'adamw', 'amsgrad', 'sgd'])
+plt.legend(optim_array)
 plt.xlabel('Epochs')
 plt.ylabel('Train Loss')
 
 #test plot
 plt.figure(2)
-for optimizer in ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']:
+for optimizer in optim_array:
     op = optim_params[optimizer]
-    test_loss = history_resnet[optimizer].history('val_loss')
+    test_loss = history_resnet[optimizer].history['val_loss']
     epoch_count = range(1, len(test_loss) + 1)
     plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
-plt.legend(['padam', 'adam', 'adamw', 'amsgrad', 'sgd'])
+plt.legend(optim_array)
 plt.xlabel('Epochs')
 plt.ylabel('Test Error')
 
