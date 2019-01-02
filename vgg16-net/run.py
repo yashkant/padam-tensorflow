@@ -113,21 +113,19 @@ testX = testX.astype('float32')
 # testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 testX = testX/255
 
-# trainY = kutils.to_categorical(trainY)
-# testY = kutils.to_categorical(testY)
+trainY = kutils.to_categorical(trainY)
+testY = kutils.to_categorical(testY)
 
 # Use below for node not found exception with one-hot
 # testY = testY.astype(np.int64)
 # trainY = trainY.astype(np.int64)
 
-testY = tf.one_hot(testY, depth=10).numpy()
-trainY = tf.one_hot(trainY, depth=10).numpy()
+# testY = tf.one_hot(testY, depth=10).numpy()
+# trainY = tf.one_hot(trainY, depth=10).numpy()
 
 tf.train.create_global_step()
-
-base_learning_rate = 0.1
-
-learning_rate = tf.train.exponential_decay(0.1, tf.train.get_global_step() * batch_size,
+    
+learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
 
 if optimizer is not 'adamw':
@@ -136,16 +134,16 @@ else:
     model = VGG('VGG16', 10, 0)
 
 if optimizer == 'padam':
-    optim = Padam(learning_rate=op['lr'], p=op['p'], beta1=op['b1'], beta2=op['b2'])
+    optim = Padam(learning_rate=learning_rate, p=op['p'], beta1=op['b1'], beta2=op['b2'])
 elif optimizer == 'adam':
-    optim = tf.train.AdamOptimizer(learning_rate=op['lr'], beta1=op['b1'], beta2=op['b2'])
+    optim = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
 elif optimizer == 'adamw':
     adamw = tf.contrib.opt.extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
-    optim = adamw(weight_decay=op['weight_decay'], learning_rate=op['lr'],  beta1=op['b1'], beta2=op['b2'])
+    optim = adamw(weight_decay=op['weight_decay'], learning_rate=learning_rate,  beta1=op['b1'], beta2=op['b2'])
 elif optimizer == 'amsgrad':
-    optim = AMSGrad(learning_rate=op['lr'], beta1=op['b1'], beta2=op['b2'])
+    optim = AMSGrad(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
 elif optimizer == 'sgd':
-    optim = tf.train.MomentumOptimizer(learning_rate=op['lr'], momentum=op['m'])
+    optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
 
 dummy_x = tf.zeros((batch_size, 32, 32, 3))
 
