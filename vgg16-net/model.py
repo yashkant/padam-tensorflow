@@ -33,16 +33,18 @@ class VGG(tf.keras.Model):
             if x == 'M':
                 layers.append(tf.keras.layers.MaxPooling2D((2, 2)))
             else:
-                layers.append(tf.keras.layers.Conv2D(x, (3, 3), padding='same', kernel_regularizer=regularizers.l2(self.wd)))
-                # channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
-                # layers.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
+                initializer = tf.keras.initializers.VarianceScaling(scale=1.0/(6*3), mode='fan_in', distribution='uniform', seed=None)
+                layers.append(tf.keras.layers.Conv2D(x, (3, 3), padding='same', kernel_regularizer=regularizers.l2(self.wd), kernel_initializer = initializer,))
+                channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
+                layers.append(tf.keras.layers.BatchNormalization(axis=channel_axis, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0)))
                 layers.append(tf.keras.layers.Activation('relu')) 
+        layers.append(tf.keras.layers.AveragePooling2D(pool_size=(1,1), strides=1,))
         return layers
 
     def _make_fc_layers(self, num_classes):
         layers=[]
         layers.append(tf.keras.layers.Flatten())
-        layers.append(tf.keras.layers.Dense(self.num_classes, kernel_regularizer=regularizers.l2(self.wd)))
+        layers.append(tf.keras.layers.Dense(self.num_classes, kernel_regularizer=regularizers.l2(self.wd), kernel_initializer =tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None), bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None)))
         return layers
     
     def call(self, inputs):
