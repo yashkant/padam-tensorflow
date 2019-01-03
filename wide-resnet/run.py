@@ -153,10 +153,12 @@ learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() 
                                        hp['decay_after']*train_size, 0.1, staircase=True)
 
 history_resnet = {}
-logfile = 'log.csv'
-f = open(logfile, "w+")
 
 for optimizer in optim_array:
+
+    logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
+    f = open(logfile, "w+")
+
 
     op = optim_params[optimizer]
 
@@ -185,25 +187,19 @@ for optimizer in optim_array:
         optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
 
     # dummy_x = tf.zeros((batch_size, 32, 32, 3))
-    
     model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
     # model(dummy_x)
     # print(model(dummy_x).shape)
-
-    
     model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
     
     csv_logger = CSVLogger(logfile, append=True, separator=';')
     history_resnet[optimizer] = model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
                                                                  validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1, callbacks = [csv_logger])
-    
- 
     scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
     print("Final test loss and accuracy:", scores)
     filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
     save_model(filepath, model)
-
-f.close()
+    f.close()
 
 
 #train plot
