@@ -12,6 +12,7 @@ import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
 
 from keras.callbacks import ModelCheckpoint, CSVLogger
+from keras.preprocessing.image import ImageDataGenerator
 
 import matplotlib.pyplot as plt
 import h5py
@@ -22,21 +23,47 @@ from padam import Padam
 dataset = 'cifar10'
 optimizer = 'adamw'
 
+if dataset == 'cifar10':
+    MEAN = [0.4914, 0.4822, 0.4465]
+    STD_DEV = [0.2023, 0.1994, 0.2010]
+    from keras.datasets import cifar10
+    (trainX, trainY), (testX, testY) = cifar10.load_data()
+
+elif dataset == 'cifar100':
+    MEAN = [0.507, 0.487, 0.441]
+    STD_DEV = [0.267, 0.256, 0.276]
+    from keras.datasets import cifar100
+    (trainX, trainY), (testX, testY) = cifar100.load_data()
+
+def preprocess(t):
+    paddings = tf.constant([[2, 2,], [2, 2],[0,0]])
+    t = tf.pad(t, paddings, 'CONSTANT')
+    t = tf.image.random_crop(t, [32, 32, 3])
+    t = normalize(t) 
+    return t
+
+def normalize(t):
+    t = tf.div(tf.subtract(t, MEAN), STD_DEV) 
+    return t
+
 hyperparameters = {
     'cifar10': {
         'epoch': 200,
         'batch_size': 128,
-        'decay_after': 50
+        'decay_after': 50,
+        'classes':10
     },
     'cifar100': {
         'epoch': 200,
         'batch_size': 128,
-        'decay_after': 50  
+        'decay_after': 50,
+        'classes':100 
     },
     'imagenet': {
         'epoch': 100,
         'batch_size': 256,
-        'decay_after': 30
+        'decay_after': 30,
+        'classes':10
     }
 }
 
@@ -84,44 +111,47 @@ optim_params = {
 }
 
 
-
-if dataset == 'cifar10':
-    from keras.datasets import cifar10
-    (trainX, trainY), (testX, testY) = cifar10.load_data()
-
-elif dataset == 'cifar100':
-    from keras.datasets import cifar100
-    (trainX, trainY), (testX, testY) = cifar100.load_data()
+hp = hyperparameters[dataset]
+batch_size = hp['batch_size']
+epochs = hp['epoch']
 
 #(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2] )
 
 trainX = trainX.astype('float32')
-trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
+# trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
+trainX = trainX/255
 testX = testX.astype('float32')
-testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
+# testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
+testX = testX/255
 
-# trainY = kutils.to_categorical(trainY)
-# testY = kutils.to_categorical(testY)
+trainY = kutils.to_categorical(trainY )
+testY = kutils.to_categorical(testY)
+
+#testY = testY.astype(np.int64)
+#trainY = trainY.astype(np.int64)
+#testY = tf.one_hot(testY, depth=10).numpy()
+#trainY = tf.one_hot(trainY, depth=10).numpy()
 
 tf.train.create_global_step()
 
-testY = testY.astype(np.int64)
-trainY = trainY.astype(np.int64)
-testY = tf.one_hot(testY, depth=10).numpy()
-trainY = tf.one_hot(trainY, depth=10).numpy()
-
-dataset = 'cifar10'
-hp = hyperparameters[dataset]
-batch_size = hp['batch_size']
-epochs = hp['epoch']
 train_size = trainX.shape[0]
+
+datagen_train = ImageDataGenerator(
+                            preprocessing_function=preprocess,
+                            horizontal_flip=True,
+                            )
+datagen_test = ImageDataGenerator(
+                            preprocessing_function=normalize,
+                            )
 
 
 # resnet cifar10 training and plots
 
-optim_array = ['padam', 'adam',]# 'adamw', 'amsgrad', 'sgd']
+optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
 
 history_resnet = {}
+logfile = 'log.csv'
+f = open(logfile, "w+")
 for optimizer in optim_array:
 
     op = optim_params[optimizer]
@@ -149,32 +179,35 @@ for optimizer in optim_array:
     elif optimizer == 'sgd':
         optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
 
-    model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
-
-   #dummy_x = tf.zeros((1, 32, 32, 3))
-   #model._set_inputs(dummy_x)
-   #print(model(dummy_x).shape)
+    dummy_x = tf.zeros((batch_size, 32, 32, 3))
+    
+    model._set_inputs(dummy_x)
+    model(dummy_x)
+    print(model(dummy_x).shape)
 
     
-    csv_logger = CSVLogger('log.csv', append=True, separator=';')
-    history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs, validation_data=(testX, testY), verbose=1, callbacks=[csv_logger])
-    filepath = 'model_'+optimizer+'_.h5'
-    # model.save(filepath)
-
+    model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
+    
+    csv_logger = CSVLogger(logfile, append=True, separator=';')
+    history_resnet[optimizer] = model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
+                                                                 validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1, callbacks = [csv_logger])
+    
+ 
+    scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
+    print("Final test loss and accuracy:", scores)
     # file=h5py.File(filepath,'r')
     # weight = []
     # for i in range(len(file.keys())):
     #     weight.append(file['weight'+str(i)][:])
     # model.set_weights(weight)
-
+    filepath = 'model_'+optimizer+'_.h5'
     file = h5py.File(filepath,'w')
     weight = model.get_weights()
     for i in range(len(weight)):
         file.create_dataset('weight'+str(i),data=weight[i])
     file.close()
 
-    #csv_logger = CSVLogger('log.csv', append=True, separator=';')
-    #history_resnet[optimizer] = model.fit(trainX, trainY, batch_size=1, epochs=2, validation_data=(testX, testY), verbose=1, callbacks=[csv_logger])
+f.close()
 
 
 #train plot
