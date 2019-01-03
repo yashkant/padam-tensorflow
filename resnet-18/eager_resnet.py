@@ -75,7 +75,9 @@ class Resnet(tf.keras.Model):
         model_y.append(self._building_block_v1(filters, strides))
     
         for i in range(1, blocks):
-            model_y.append(self._building_block_v1(filters, 1))
+            model_y.append(self.
+
+                (filters, 1))
         
         return model_y
     
@@ -201,21 +203,21 @@ if __name__ == '__main__':
     img_rows, img_cols = 32, 32
     epochs = 1
 
-    # (trainX, trainY), (testX, testY) = cifar10.load_data()
+    (trainX, trainY), (testX, testY) = cifar10.load_data()
 
-    # trainX = trainX.astype('float32')
-    # trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
-    # testX = testX.astype('float32')
-    # testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
+    trainX = trainX.astype('float32')
+    trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
+    testX = testX.astype('float32')
+    testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 
-    # trainY = kutils.to_categorical(trainY)
-    # testY = kutils.to_categorical(testY)
+    trainY = kutils.to_categorical(trainY)
+    testY = kutils.to_categorical(testY)
 
     # testY = tf.one_hot(testY, depth=10).numpy()
     # trainY = tf.one_hot(trainY, depth=10).numpy()
 
-    # testY = testY.astype(np.int64)
-    # testX = testX.astype(np.int64)
+    testY = testY.astype(np.int64)
+    testX = testX.astype(np.int64)
 
 
     model = Resnet(training= False, data_format='channels_last')
@@ -227,13 +229,13 @@ if __name__ == '__main__':
     model._set_inputs(dummy_x)
     print(model(dummy_x).shape)
 
-    # train
-    # model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
-              # validation_data=(testX, testY), verbose=1)
+    train
+    model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
+              validation_data=(testX, testY), verbose=1)
 
-    # evaluate on test set
-    # scores = model.evaluate(testX, testY, batch_size, verbose=1)
-    # print("Final test loss and accuracy :", scores)
+    evaluate on test set
+    scores = model.evaluate(testX, testY, batch_size, verbose=1)
+    print("Final test loss and accuracy :", scores)
     
     
  

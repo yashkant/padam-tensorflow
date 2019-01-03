@@ -141,8 +141,10 @@ trainX = trainX/255
 testX = testX.astype('float32')
 # testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 testX = testX/255
+
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
+print("Image format:",K.image_data_format())
 
 #testY = testY.astype(np.int64)
 #trainY = trainY.astype(np.int64)
