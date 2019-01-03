@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import os
 import sys
+print(os.getcwd())
 os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
 import tensorflow as tf
 tf.enable_eager_execution()
@@ -12,6 +13,11 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from wide_resnet import WRNModel
 from keras import backend as K
+
+sys.path.append(os.path.dirname(os.getcwd()))
+sys.path.append(os.getcwd())
+
+print(sys.path)
 from padam import Padam
 from amsgrad import AMSGrad
 
