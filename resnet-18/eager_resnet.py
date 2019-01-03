@@ -28,21 +28,26 @@ class Resnet(tf.keras.Model):
         # dimensions of `inputs` (as opposed to using `tf.layers.conv2d` alone).
         # Returns output feature map of same spatial size as input if stride=1 else 
         # halves the input dimensions.
-        
+        model_x = []
         if strides > 1:
             pad_total = kernel_size - 1
             pad_beg = pad_total // 2
             pad_end = pad_total - pad_beg
+            model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
+            model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False,
+                           kernel_regularizer=regularizers.l2(self.wd)))
             #kernel_initializer=  tf.keras.initializers.VarianceScaling(scale=1.0/27, mode='fan_in',distribution='uniform',
-            model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),
-            	tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False,
-            	           kernel_regularizer=regularizers.l2(self.wd))])
+            #model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),
+            #	tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False,
+            #	           kernel_regularizer=regularizers.l2(self.wd))])
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
-            return model_x
+            #return model_x
         else : 
-            return tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
-                kernel_regularizer=regularizers.l2(self.wd) )
-
+            model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
+                kernel_regularizer=regularizers.l2(self.wd) ))
+            #return tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
+             #   kernel_regularizer=regularizers.l2(self.wd) )
+        return model_x
         #model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
               
      
@@ -161,7 +166,14 @@ class Resnet(tf.keras.Model):
                     short = inputs
                     #print(inputs.shape)
                 for lyr in range(len(self.model[blk_index][basic_bblk])):
-                    inputs = self.model[blk_index][basic_bblk][lyr](inputs)
+                    if blk!=0 and basic_bblk==0:
+                        if lyr==0:
+                            for q in range(len(self.model[blk_index][basic_bblk][lyr])):
+                                inputs = self.model[blk_index][basic_bblk][lyr](inputs)
+                        inputs = self.model[blk_index][basic_bblk][lyr](inputs)
+
+                    else:
+                        inputs = self.model[blk_index][basic_bblk][lyr](inputs)
                     #print(inputs.shape)
                 #print(inputs.shape)  
                 #print(short.shape)
@@ -219,7 +231,7 @@ if __name__ == '__main__':
     #testY = testY.astype(np.int64)
     #testX = testX.astype(np.int64)
     print(K.image_data_format())
-
+    #testY = testY.astype(np.int64)
     model = Resnet(training= False, data_format='channels_last')
 
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
@@ -230,9 +242,7 @@ if __name__ == '__main__':
     print(model(dummy_x).shape)
 
     model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
-              validation_data=(testX, testY), verbose=1)
-
-
+              validation_data=(testX, testY), vebose=1)
     scores = model.evaluate(testX, testY, batch_size, verbose=1)
     print("Final test loss and accuracy :", scores)
     
