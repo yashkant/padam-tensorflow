@@ -24,6 +24,7 @@ print(sys.path)
 from amsgrad import AMSGrad
 from padam import Padam
 
+pretrained = False
 dataset = 'cifar10'
 
 if dataset == 'cifar10':
@@ -142,6 +143,7 @@ testX = testX.astype('float32')
 testX = testX/255
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
+
 #testY = testY.astype(np.int64)
 #trainY = trainY.astype(np.int64)
 #testY = tf.one_hot(testY, depth=10).numpy()
@@ -201,48 +203,50 @@ for optimizer in optim_array:
     model._set_inputs(dummy_x)
     #model(dummy_x)
     #print(model(dummy_x).shape)
+    
+    filepath = 'model_'+optimizer+'.h5'
 
+    if pretrained:
+        model = load_model(filepath, model)
+        model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
     
-    model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
-    
-    csv_logger = CSVLogger(logfile, append=True, separator=';')
-    history_resnet[optimizer] = model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
+    else :
+        model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
+        csv_logger = CSVLogger(logfile, append=True, separator=';')
+        history_resnet[optimizer] = model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
                                                                  validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1, callbacks = [csv_logger])
     
  
     scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
     print("Final test loss and accuracy:", scores)
-    # file=h5py.File(filepath,'r')
-    # weight = []
-    # for i in range(len(file.keys())):
-    #     weight.append(file['weight'+str(i)][:])
-    # model.set_weights(weight)
-    filepath = 'model_'+optimizer+'.h5'
+    
     save_model(filepath, model)
     f.close()
 
 
-#train plot
-plt.figure(1)
-for optimizer in optim_array:
-    op = optim_params[optimizer]
-    train_loss = history_resnet[optimizer].history['loss']
-    epoch_count = range(1, len(train_loss) + 1)
-    plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
-plt.legend(optim_array)
-plt.xlabel('Epochs')
-plt.ylabel('Train Loss')
 
-#test plot
-plt.figure(2)
-for optimizer in optim_array:
-    op = optim_params[optimizer]
-    test_loss = history_resnet[optimizer].history['val_loss']
-    epoch_count = range(1, len(test_loss) + 1)
-    plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
-plt.legend(optim_array)
-plt.xlabel('Epochs')
-plt.ylabel('Test Error')
-
-#plt.show()
-plt.savefig('figure_'+dataset+'.png')
+if (pretrained==False):
+    #train plot      
+    plt.figure(1)
+    for optimizer in optim_array:
+        op = optim_params[optimizer]
+        train_loss = history_resnet[optimizer].history['loss']
+        epoch_count = range(1, len(train_loss) + 1)
+        plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
+    plt.legend(optim_array)
+    plt.xlabel('Epochs')
+    plt.ylabel('Train Loss')
+    
+    #test plot
+    plt.figure(2)
+    for optimizer in optim_array:
+        op = optim_params[optimizer]
+        test_loss = history_resnet[optimizer].history['val_loss']
+        epoch_count = range(1, len(test_loss) + 1)
+        plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
+    plt.legend(optim_array)
+    plt.xlabel('Epochs')
+    plt.ylabel('Test Error')
+    
+    #plt.show()
+    plt.savefig('figure_'+dataset+'.png')
