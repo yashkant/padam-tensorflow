@@ -139,9 +139,10 @@ class Resnet(tf.keras.Model):
             # https://www.tensorflow.org/performance/performance_guide#data_formats
             inputs = tf.transpose(inputs, [0, 3, 1, 2])"""
         #print(inputs.shape)
-        for i in range(len(self.model[0][0])):
-            inputs = self.model[0][0][i](inputs)
-
+        
+        for t in range(len(self.model[0][0][0])):
+            inputs = self.model[0][0][0](inputs)
+        inputs = self.model[0][0][1](inputs)
 
         inputs = self.relu(inputs)
 
