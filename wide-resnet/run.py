@@ -117,12 +117,7 @@ optim_params = {
 hp = hyperparameters[dataset]
 op = optim_params[optimizer]
 epochs = hp['epoch']
-
-if optimizer == 'adamw' and dataset=='imagenet':
-    op['weight_decay'] = 0.05 
-
-
-# batch_size = hp['batch_size']
+batch_size = hp['batch_size']
 img_rows, img_cols = 32, 32
 train_size = trainX.shape[0]
 
