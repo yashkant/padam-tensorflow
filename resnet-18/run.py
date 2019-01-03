@@ -74,7 +74,7 @@ optim_params = {
         'b1': 0.9,
         'b2': 0.999, 
         'color': 'darkred',
-        'linestyle':'-',
+        'linestyle':'-'
     },
     'adam': {
         'weight_decay': 0.0001,
@@ -82,7 +82,7 @@ optim_params = {
         'b1': 0.9,
         'b2': 0.99,
         'color': 'orange',
-        'linestyle':'--',
+        'linestyle':'--'
     },
     'adamw': {
         'weight_decay': 0.025,
@@ -90,7 +90,7 @@ optim_params = {
         'b1': 0.9,
         'b2': 0.99,
         'color': 'magenta',
-        'linestyle':'--',
+        'linestyle':'--'
     },
     'amsgrad': {
         'weight_decay': 0.0001,
@@ -98,14 +98,14 @@ optim_params = {
         'b1': 0.9,
         'b2': 0.99,
         'color' : 'darkgreen',
-        'linestyle':'-.',
+        'linestyle':'-.'
     },
     'sgd': {
         'weight_decay': 0.0005,
         'lr': 0.1,
         'm': 0.9,
         'color': 'blue',
-        'linestyle':'-',
+        'linestyle':'-'
     }
 }
 
