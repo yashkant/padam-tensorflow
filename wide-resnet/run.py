@@ -25,8 +25,7 @@ print(sys.path)
 from padam import Padam
 from amsgrad import AMSGrad
 
-dataset = 'cifar10'
-optimizer = 'adam'
+dataset = 'cifar100'
 
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
@@ -119,9 +118,9 @@ optim_params = {
 }
 
 hp = hyperparameters[dataset]
-op = optim_params[optimizer]
 epochs = hp['epoch']
 batch_size = hp['batch_size']
+
 img_rows, img_cols = 32, 32
 train_size = trainX.shape[0]
 
@@ -140,16 +139,9 @@ optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
 
 
 
-if optimizer is 'adamw':
-	model = WRNModel(depth=16, multiplier=4, wd = 0)
-else:
-    model = WRNModel(depth=16, multiplier=4, wd = op['weight_decay'])
-
 model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 
 
-learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
-                                       hp['decay_after']*train_size, 0.1, staircase=True)
 
 history = {}
 
