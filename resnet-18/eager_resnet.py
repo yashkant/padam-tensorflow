@@ -31,15 +31,15 @@ class Resnet(tf.keras.Model):
             pad_total = kernel_size - 1
             pad_beg = pad_total // 2
             pad_end = pad_total - pad_beg
-
+            #kernel_initializer=  tf.keras.initializers.VarianceScaling(scale=1.0/27, mode='fan_in',distribution='uniform',
             model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),
             	tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False,
-            	          kernel_initializer=  tf.keras.initializers.VarianceScaling(scale=1.0/(6*kernel_size), mode='fan_in',distribution='uniform', seed=None), kernel_regularizer=regularizers.l2(self.wd))])
+            	           seed=None), kernel_regularizer=regularizers.l2(self.wd))])
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
             return model_x
         else : 
             return tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
-             kernel_initializer =  tf.keras.initializers.VarianceScaling(scale=1.0/(6*kernel_size), mode='fan_in',distribution='uniform', seed=None), kernel_regularizer=regularizers.l2(self.wd) )
+               seed=None), kernel_regularizer=regularizers.l2(self.wd) )
 
         #model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
               
