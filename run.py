@@ -62,8 +62,7 @@ hyperparameters = {
     'imagenet': {
         'epoch': 100,
         'batch_size': 256,
-        'decay_after': 30,
-        'classes':10
+        'decay_after': 30
     }
 }
 
