@@ -2,26 +2,29 @@ from __future__ import absolute_import, division, print_function
 import os 
 import sys
 #os.environ["CUDA_VISIBLE_DEVICES"]= "1"
-
+#os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
+print(os.getcwd())
 import tensorflow as tf
 import keras.backend as K
 import numpy as np
 tf.enable_eager_execution()
-
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
-
 from keras.callbacks import ModelCheckpoint, CSVLogger
 from keras.preprocessing.image import ImageDataGenerator
-
+from eager_resnet import Resnet
 import matplotlib.pyplot as plt
 import h5py
+
+sys.path.append(os.path.dirname(os.getcwd()))
+sys.path.append(os.getcwd())
+
+print(sys.path)
+
 from amsgrad import AMSGrad
-from eager_resnet import Resnet
 from padam import Padam
 
 dataset = 'cifar10'
-optimizer = 'adamw'
 
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
@@ -45,6 +48,21 @@ def preprocess(t):
 def normalize(t):
     t = tf.div(tf.subtract(t, MEAN), STD_DEV) 
     return t
+
+def save_model(filepath, model):
+    file = h5py.File(filepath,'w')
+    weight = model.get_weights()
+    for i in range(len(weight)):
+        file.create_dataset('weight'+str(i),data=weight[i])
+    file.close()
+
+def load_model(filepath, model):
+    file=h5py.File(filepath,'r')
+    weight = []
+    for i in range(len(file.keys())):
+        weight.append(file['weight'+str(i)][:])
+    model.set_weights(weight)
+    return model
 
 hyperparameters = {
     'cifar10': {
@@ -111,10 +129,10 @@ optim_params = {
 
 
 hp = hyperparameters[dataset]
-batch_size = hp['batch_size']
-epochs = hp['epoch']
+batch_size = 1#hp['batch_size']
+epochs = 2#hp['epoch']
 
-#(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2] )
+(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2] )
 
 trainX = trainX.astype('float32')
 # trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
@@ -123,13 +141,13 @@ testX = testX.astype('float32')
 # testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 testX = testX/255
 
-trainY = kutils.to_categorical(trainY )
-testY = kutils.to_categorical(testY)
+#trainY = kutils.to_categorical(trainY )
+#testY = kutils.to_categorical(testY)
 
-#testY = testY.astype(np.int64)
-#trainY = trainY.astype(np.int64)
-#testY = tf.one_hot(testY, depth=10).numpy()
-#trainY = tf.one_hot(trainY, depth=10).numpy()
+testY = testY.astype(np.int64)
+trainY = trainY.astype(np.int64)
+testY = tf.one_hot(testY, depth=10).numpy()
+trainY = tf.one_hot(trainY, depth=10).numpy()
 
 tf.train.create_global_step()
 
@@ -149,9 +167,11 @@ datagen_test = ImageDataGenerator(
 optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
 
 history_resnet = {}
-logfile = 'log.csv'
-f = open(logfile, "w+")
+
 for optimizer in optim_array:
+
+    logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
+    f = open(logfile, "w+")
 
     op = optim_params[optimizer]
 
@@ -181,8 +201,8 @@ for optimizer in optim_array:
     dummy_x = tf.zeros((batch_size, 32, 32, 3))
     
     model._set_inputs(dummy_x)
-    model(dummy_x)
-    print(model(dummy_x).shape)
+    #model(dummy_x)
+    #print(model(dummy_x).shape)
 
     
     model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
@@ -199,14 +219,14 @@ for optimizer in optim_array:
     # for i in range(len(file.keys())):
     #     weight.append(file['weight'+str(i)][:])
     # model.set_weights(weight)
-    filepath = 'model_'+optimizer+'_.h5'
+    filepath = 'model_'+optimizer+'.h5'
+    save_model(filepath, model)
+    f.close()
     file = h5py.File(filepath,'w')
     weight = model.get_weights()
     for i in range(len(weight)):
         file.create_dataset('weight'+str(i),data=weight[i])
     file.close()
-
-f.close()
 
 
 #train plot
@@ -231,4 +251,5 @@ plt.legend(optim_array)
 plt.xlabel('Epochs')
 plt.ylabel('Test Error')
 
-plt.show()
+#plt.show()
+plt.savefig('figure_'+dataset+'.png')
