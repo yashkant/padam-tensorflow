@@ -5,7 +5,9 @@ import tensorflow as tf
 
 import keras.backend as K
 import numpy as np
-
+import os
+import sys
+os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
 tf.enable_eager_execution()
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
@@ -205,14 +207,14 @@ class Resnet(tf.keras.Model):
                                            , bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None))(inputs)
 
         #print(inputs.shape)
-        return tf.nn.softmax(inputs)
+        return inputs  #tf.nn.softmax(inputs)
 
 
 if __name__ == '__main__':
-    batch_size = 1
-    nb_epoch = 1
+    batch_size = 128
+    nb_epoch = 20
     img_rows, img_cols = 32, 32
-    epochs = 1
+    epochs = 20
 
     (trainX, trainY), (testX, testY) = cifar10.load_data()
 
@@ -226,10 +228,11 @@ if __name__ == '__main__':
 
     # testY = tf.one_hot(testY, depth=10).numpy()
     # trainY = tf.one_hot(trainY, depth=10).numpy()
+
     #testY = testY.astype(np.int64)
     #testX = testX.astype(np.int64)
-
-
+    print(K.image_data_format())
+    #testY = testY.astype(np.int64)
     model = Resnet(training= False, data_format='channels_last')
 
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
@@ -239,11 +242,8 @@ if __name__ == '__main__':
     model._set_inputs(dummy_x)
     print(model(dummy_x).shape)
 
-    #train
     model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
-              validation_data=(testX, testY), verbose=1)
-
-    #evaluate on test set
+              validation_data=(testX, testY), vebose=1)
     scores = model.evaluate(testX, testY, batch_size, verbose=1)
     print("Final test loss and accuracy :", scores)
     
