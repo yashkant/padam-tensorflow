@@ -40,7 +40,7 @@ elif dataset == 'cifar100':
     from keras.datasets import cifar100
     (trainX, trainY), (testX, testY) = cifar100.load_data()
 
-# (trainX, trainY), (testX, testY) = (trainX[:20], trainY[:20]), (testX[:20], testY[:20])
+(trainX, trainY), (testX, testY) = (trainX[:20], trainY[:20]), (testX[:20], testY[:20])
 
 def preprocess(t):
     paddings = tf.constant([[2, 2,], [2, 2],[0,0]])
@@ -130,8 +130,8 @@ optim_params = {
 }
 
 hp = hyperparameters[dataset]
-epochs = hp['epoch']
-batch_size = hp['batch_size']
+epochs = 5 #hp['epoch']
+batch_size = 5 #hp['batch_size']
 
 img_rows, img_cols = 32, 32
 train_size = trainX.shape[0]
@@ -147,7 +147,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
+optim_array = ['padam', 'adam']#, 'adamw', 'amsgrad', 'sgd']
 
 
 history = {}
@@ -187,7 +187,7 @@ for optimizer in optim_array:
 
     model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 
-    model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
+    model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy', 'top_k_categorical_accuracy'], global_step=tf.train.get_global_step())
 
     csv_logger = CSVLogger(logfile, append=True, separator=';')
 
@@ -217,12 +217,29 @@ plt.savefig('figure_'+dataset+'_train_loss.png')
 plt.figure(2)
 for optimizer in optim_array:
     op = optim_params[optimizer]
-    test_loss = history[optimizer].history['val_loss']
-    epoch_count = range(1, len(test_loss) + 1)
-    plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
+    test_error = []
+    for i in history[optimizer].history['val_acc']:
+        test_error.append(1-i)
+    epoch_count = range(1, len(test_error) + 1)
+    plt.plot(epoch_count, test_error, color=op['color'], linestyle=op['linestyle'])
 plt.legend(optim_array)
 plt.xlabel('Epochs')
 plt.ylabel('Test Error')
 
 # plt.show()
-plt.savefig('figure_'+dataset+'_test_loss.png')
+plt.savefig('figure_'+dataset+'_test_error_top_1.png')
+
+#test plot
+plt.figure(3)
+for optimizer in optim_array:
+    op = optim_params[optimizer]
+    test_error = []
+    for i in history[optimizer].history['val_top_k_categorical_accuracy']:
+        test_error.append(1-i)
+    epoch_count = range(1, len(test_error) + 1)
+    plt.plot(epoch_count, test_error, color=op['color'], linestyle=op['linestyle'])
+plt.legend(optim_array)
+plt.xlabel('Epochs')
+plt.ylabel('Test Error')
+
+plt.savefig('figure_'+dataset+'_test_error_top_5.png')
