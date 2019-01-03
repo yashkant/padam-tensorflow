@@ -25,6 +25,15 @@ elif dataset == 'cifar100':
     MEAN = [0.507, 0.487, 0.441]
     STD_DEV = [0.267, 0.256, 0.276]
 
+
+def preprocess(t):
+    paddings = tf.constant([[2, 2,], [2, 2],[0,0]])
+    t = tf.pad(t, paddings, 'CONSTANT')
+    t = tf.image.random_crop(t, [32, 32, 3])
+    t = normalize(t) 
+    return t
+
+
 def normalize(t):
     t = tf.div(tf.subtract(t, MEAN), STD_DEV) 
     return t
@@ -144,7 +153,7 @@ from keras.preprocessing.image import ImageDataGenerator
 
 # Using zoom instead of : transforms.RandomCrop(32, padding=4)
 datagen_train = ImageDataGenerator(zoom_range=0.125,
-                            preprocessing_function=normalize,
+                            preprocessing_function=preprocess,
                             horizontal_flip=True,
                             )
 datagen_test = ImageDataGenerator(
