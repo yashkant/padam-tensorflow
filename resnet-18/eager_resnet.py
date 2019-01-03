@@ -143,7 +143,7 @@ class Resnet(tf.keras.Model):
         #print(inputs.shape)
         
         for t in range(len(self.model[0][0][0])):
-            inputs = self.model[0][0][0](inputs)
+            inputs = self.model[0][0][0][t](inputs)
         inputs = self.model[0][0][1](inputs)
 
         inputs = self.relu(inputs)
