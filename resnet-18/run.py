@@ -1,28 +1,27 @@
 from __future__ import absolute_import, division, print_function
-import os
+import os 
 import sys
-print(os.getcwd())
-os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
+#os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+
 import tensorflow as tf
-tf.enable_eager_execution()
+import keras.backend as K
 import numpy as np
-from keras.datasets import cifar10
+tf.enable_eager_execution()
+
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
+
+from keras.callbacks import ModelCheckpoint, CSVLogger
 from keras.preprocessing.image import ImageDataGenerator
-from keras.utils import plot_model
-from wide_resnet import WRNModel
-from keras import backend as K
 
-sys.path.append(os.path.dirname(os.getcwd()))
-sys.path.append(os.getcwd())
-
-print(sys.path)
-from padam import Padam
+import matplotlib.pyplot as plt
+import h5py
 from amsgrad import AMSGrad
+from eager_resnet import Resnet
+from padam import Padam
 
 dataset = 'cifar10'
-optimizer = 'adam'
+optimizer = 'adamw'
 
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
@@ -43,36 +42,22 @@ def preprocess(t):
     t = normalize(t) 
     return t
 
-
 def normalize(t):
     t = tf.div(tf.subtract(t, MEAN), STD_DEV) 
     return t
-
-def save_model(filepath, model):
-    file = h5py.File(filepath,'w')
-    weight = model.get_weights()
-    for i in range(len(weight)):
-        file.create_dataset('weight'+str(i),data=weight[i])
-    file.close()
-
-def load_model(filepath, model):
-    file=h5py.File(filepath,'r')
-    weight = []
-    for i in range(len(file.keys())):
-        weight.append(file['weight'+str(i)][:])
-    model.set_weights(weight)
-    return model 
 
 hyperparameters = {
     'cifar10': {
         'epoch': 200,
         'batch_size': 128,
-        'decay_after': 50
+        'decay_after': 50,
+        'classes':10
     },
     'cifar100': {
         'epoch': 200,
         'batch_size': 128,
-        'decay_after': 50  
+        'decay_after': 50,
+        'classes':100 
     },
     'imagenet': {
         'epoch': 100,
@@ -87,75 +72,85 @@ optim_params = {
         'lr': 0.1,
         'p': 0.125,
         'b1': 0.9,
-        'b2': 0.999
+        'b2': 0.999, 
+        'color': 'darkred',
+        'linestyle':'-'
     },
     'adam': {
         'weight_decay': 0.0001,
         'lr': 0.001,
         'b1': 0.9,
-        'b2': 0.99
+        'b2': 0.99,
+        'color': 'orange',
+        'linestyle':'--'
     },
     'adamw': {
         'weight_decay': 0.025,
         'lr': 0.001,
         'b1': 0.9,
-        'b2': 0.99
+        'b2': 0.99,
+        'color': 'magenta',
+        'linestyle':'--'
     },
     'amsgrad': {
         'weight_decay': 0.0001,
         'lr': 0.001,
         'b1': 0.9,
-        'b2': 0.99
+        'b2': 0.99,
+        'color' : 'darkgreen',
+        'linestyle':'-.'
     },
     'sgd': {
         'weight_decay': 0.0005,
         'lr': 0.1,
-        'm': 0.9
+        'm': 0.9,
+        'color': 'blue',
+        'linestyle':'-'
     }
 }
 
+
 hp = hyperparameters[dataset]
-op = optim_params[optimizer]
+batch_size = hp['batch_size']
 epochs = hp['epoch']
 
-if optimizer == 'adamw' and dataset=='imagenet':
-    op['weight_decay'] = 0.05 
-
-
-# batch_size = hp['batch_size']
-img_rows, img_cols = 32, 32
-train_size = trainX.shape[0]
+#(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2] )
 
 trainX = trainX.astype('float32')
+# trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
 trainX = trainX/255
 testX = testX.astype('float32')
+# testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 testX = testX/255
-trainY = kutils.to_categorical(trainY)
+
+trainY = kutils.to_categorical(trainY )
 testY = kutils.to_categorical(testY)
+
+#testY = testY.astype(np.int64)
+#trainY = trainY.astype(np.int64)
+#testY = tf.one_hot(testY, depth=10).numpy()
+#trainY = tf.one_hot(trainY, depth=10).numpy()
+
 tf.train.create_global_step()
 
-datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
-datagen_test = ImageDataGenerator(preprocessing_function=normalize)
+train_size = trainX.shape[0]
+
+datagen_train = ImageDataGenerator(
+                            preprocessing_function=preprocess,
+                            horizontal_flip=True,
+                            )
+datagen_test = ImageDataGenerator(
+                            preprocessing_function=normalize,
+                            )
+
+
+# resnet cifar10 training and plots
 
 optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
-
-
-
-if optimizer is 'adamw':
-	model = WRNModel(depth=16, multiplier=4, wd = 0)
-else:
-    model = WRNModel(depth=16, multiplier=4, wd = op['weight_decay'])
-
-model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
-
-
-learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
-                                       hp['decay_after']*train_size, 0.1, staircase=True)
 
 history_resnet = {}
 logfile = 'log.csv'
 f = open(logfile, "w+")
-
 for optimizer in optim_array:
 
     op = optim_params[optimizer]
@@ -171,7 +166,6 @@ for optimizer in optim_array:
 
     learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
-    
     if optimizer == 'padam':
         optim = Padam(learning_rate=learning_rate, p=op['p'], beta1=op['b1'], beta2=op['b2'])
     elif optimizer == 'adam':
@@ -184,11 +178,11 @@ for optimizer in optim_array:
     elif optimizer == 'sgd':
         optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
 
-    # dummy_x = tf.zeros((batch_size, 32, 32, 3))
+    dummy_x = tf.zeros((batch_size, 32, 32, 3))
     
-    model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
-    # model(dummy_x)
-    # print(model(dummy_x).shape)
+    model._set_inputs(dummy_x)
+    model(dummy_x)
+    print(model(dummy_x).shape)
 
     
     model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
@@ -200,7 +194,41 @@ for optimizer in optim_array:
  
     scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
     print("Final test loss and accuracy:", scores)
-    filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
-    save_model(filepath, model)
+    # file=h5py.File(filepath,'r')
+    # weight = []
+    # for i in range(len(file.keys())):
+    #     weight.append(file['weight'+str(i)][:])
+    # model.set_weights(weight)
+    filepath = 'model_'+optimizer+'_.h5'
+    file = h5py.File(filepath,'w')
+    weight = model.get_weights()
+    for i in range(len(weight)):
+        file.create_dataset('weight'+str(i),data=weight[i])
+    file.close()
 
 f.close()
+
+
+#train plot
+plt.figure(1)
+for optimizer in optim_array:
+    op = optim_params[optimizer]
+    train_loss = history_resnet[optimizer].history['loss']
+    epoch_count = range(1, len(train_loss) + 1)
+    plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
+plt.legend(optim_array)
+plt.xlabel('Epochs')
+plt.ylabel('Train Loss')
+
+#test plot
+plt.figure(2)
+for optimizer in optim_array:
+    op = optim_params[optimizer]
+    test_loss = history_resnet[optimizer].history['val_loss']
+    epoch_count = range(1, len(test_loss) + 1)
+    plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
+plt.legend(optim_array)
+plt.xlabel('Epochs')
+plt.ylabel('Test Error')
+
+plt.show()
