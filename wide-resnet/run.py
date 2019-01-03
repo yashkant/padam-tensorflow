@@ -147,7 +147,7 @@ model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
 
-history_resnet = {}
+history = {}
 
 for optimizer in optim_array:
 
@@ -162,9 +162,9 @@ for optimizer in optim_array:
 
 
     if optimizer is not 'adamw':
-        model = Resnet(training= True, data_format= K.image_data_format(), classes = 10, wt_decay = op['weight_decay'])
+        model = WRNModel(depth=16, multiplier=4, wd = op['weight_decay'])
     else:
-        model = Resnet(training= True, data_format= K.image_data_format(), classes = 10, wt_decay = 0)
+        model = WRNModel(depth=16, multiplier=4, wd = 0)
 
     learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
@@ -188,7 +188,7 @@ for optimizer in optim_array:
     model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
     
     csv_logger = CSVLogger(logfile, append=True, separator=';')
-    history_resnet[optimizer] = model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
+    history[optimizer] = model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
                                                                  validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1, callbacks = [csv_logger])
     scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
     print("Final test loss and accuracy:", scores)
@@ -201,7 +201,7 @@ for optimizer in optim_array:
 plt.figure(1)
 for optimizer in optim_array:
     op = optim_params[optimizer]
-    train_loss = history_resnet[optimizer].history['loss']
+    train_loss = history[optimizer].history['loss']
     epoch_count = range(1, len(train_loss) + 1)
     plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
 plt.legend(optim_array)
@@ -212,7 +212,7 @@ plt.ylabel('Train Loss')
 plt.figure(2)
 for optimizer in optim_array:
     op = optim_params[optimizer]
-    test_loss = history_resnet[optimizer].history['val_loss']
+    test_loss = history[optimizer].history['val_loss']
     epoch_count = range(1, len(test_loss) + 1)
     plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
 plt.legend(optim_array)
