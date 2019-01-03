@@ -1,17 +1,17 @@
 from __future__ import absolute_import, division, print_function
-import os
+import os 
 import sys
-os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
+# os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+
 import tensorflow as tf
-tf.enable_eager_execution()
+import keras.backend as K
 import numpy as np
-from keras.datasets import cifar10
+tf.enable_eager_execution()
+
 import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
-from keras.preprocessing.image import ImageDataGenerator
-from keras.utils import plot_model
-from wide_resnet import WRNModel
-from keras import backend as K
+
+from model import VGG
 from padam import Padam
 from amsgrad import AMSGrad
 
@@ -89,46 +89,49 @@ optim_params = {
 
 hp = hyperparameters[dataset]
 op = optim_params[optimizer]
-
 if optimizer == 'adamw' and dataset=='imagenet':
     op['weight_decay'] = 0.05 
 
 if dataset == 'cifar10':
     from keras.datasets import cifar10
     (trainX, trainY), (testX, testY) = cifar10.load_data()
-
 elif dataset == 'cifar100':
     from keras.datasets import cifar100
     (trainX, trainY), (testX, testY) = cifar100.load_data()
 
 # (trainX, trainY), (testX, testY) = (trainX[:20], trainY[:20]), (testX[:20], testY[:20])
 batch_size = hp['batch_size']
+nb_epoch = 1
 img_rows, img_cols = 32, 32
 epochs = hp['epoch']
 train_size = trainX.shape[0]
 
 trainX = trainX.astype('float32')
+# trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
 trainX = trainX/255
 testX = testX.astype('float32')
+# testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 testX = testX/255
+
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 
+# Use below for node not found exception with one-hot
+# testY = testY.astype(np.int64)
+# trainY = trainY.astype(np.int64)
+
+# testY = tf.one_hot(testY, depth=10).numpy()
+# trainY = tf.one_hot(trainY, depth=10).numpy()
 
 tf.train.create_global_step()
-
-# base_learning_rate = 0.1
-
-if optimizer is 'adamw':
-	model = WRNModel(depth=16, multiplier=4, wd = 0)
-else:
-    model = WRNModel(depth=16, multiplier=4, wd = op['weight_decay'])
-
-model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
-
-
+    
 learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
+
+if optimizer is not 'adamw':
+    model = VGG('VGG16', 10, op['weight_decay'])
+else:
+    model = VGG('VGG16', 10, 0)
 
 if optimizer == 'padam':
     optim = Padam(learning_rate=learning_rate, p=op['p'], beta1=op['b1'], beta2=op['b2'])
@@ -142,6 +145,12 @@ elif optimizer == 'amsgrad':
 elif optimizer == 'sgd':
     optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
 
+dummy_x = tf.zeros((batch_size, 32, 32, 3))
+
+model._set_inputs(dummy_x)
+model(dummy_x)
+print(model(dummy_x).shape)
+
 loss = 'categorical_crossentropy'
 
 model.compile(optimizer=optim, loss=loss,
@@ -149,10 +158,8 @@ model.compile(optimizer=optim, loss=loss,
 
 from keras.preprocessing.image import ImageDataGenerator
 
-
-# Using zoom instead of : transforms.RandomCrop(32, padding=4)
-datagen_train = ImageDataGenerator(zoom_range=0.125,
-                            preprocessing_function=normalize,
+datagen_train = ImageDataGenerator(
+                            preprocessing_function=preprocess,
                             horizontal_flip=True,
                             )
 datagen_test = ImageDataGenerator(
@@ -160,10 +167,7 @@ datagen_test = ImageDataGenerator(
                             )
 
 model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
-                                 validation_data = datagen_test.flow(testX, testY, batch_size = batch_size) , verbose=1)
+                                 validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
 
 scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
 print("Final test loss and accuracy :", scores)
-
-
-
