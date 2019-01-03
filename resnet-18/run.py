@@ -129,10 +129,10 @@ optim_params = {
 
 
 hp = hyperparameters[dataset]
-batch_size = 1#hp['batch_size']
-epochs = 2#hp['epoch']
+batch_size = hp['batch_size']
+epochs = hp['epoch']
 
-(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2] )
+#(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2] )
 
 trainX = trainX.astype('float32')
 # trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
@@ -140,14 +140,12 @@ trainX = trainX/255
 testX = testX.astype('float32')
 # testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
 testX = testX/255
-
-#trainY = kutils.to_categorical(trainY )
-#testY = kutils.to_categorical(testY)
-
-testY = testY.astype(np.int64)
-trainY = trainY.astype(np.int64)
-testY = tf.one_hot(testY, depth=10).numpy()
-trainY = tf.one_hot(trainY, depth=10).numpy()
+trainY = kutils.to_categorical(trainY)
+testY = kutils.to_categorical(testY)
+#testY = testY.astype(np.int64)
+#trainY = trainY.astype(np.int64)
+#testY = tf.one_hot(testY, depth=10).numpy()
+#trainY = tf.one_hot(trainY, depth=10).numpy()
 
 tf.train.create_global_step()
 
@@ -222,11 +220,6 @@ for optimizer in optim_array:
     filepath = 'model_'+optimizer+'.h5'
     save_model(filepath, model)
     f.close()
-    file = h5py.File(filepath,'w')
-    weight = model.get_weights()
-    for i in range(len(weight)):
-        file.create_dataset('weight'+str(i),data=weight[i])
-    file.close()
 
 
 #train plot
