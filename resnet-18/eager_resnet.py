@@ -34,12 +34,12 @@ class Resnet(tf.keras.Model):
             #kernel_initializer=  tf.keras.initializers.VarianceScaling(scale=1.0/27, mode='fan_in',distribution='uniform',
             model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),
             	tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False,
-            	           seed=None), kernel_regularizer=regularizers.l2(self.wd))])
+            	           kernel_regularizer=regularizers.l2(self.wd))])
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
             return model_x
         else : 
             return tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
-               seed=None), kernel_regularizer=regularizers.l2(self.wd) )
+                kernel_regularizer=regularizers.l2(self.wd) )
 
         #model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
               
@@ -184,7 +184,7 @@ class Resnet(tf.keras.Model):
         #inputs = tf.squeeze(inputs, axes)
         inputs = self.avg_pool(inputs)
         #print(inputs.shape)
-        inputs = self.flatten(inputs)
+        inputs = self.flatten(inputs) 
         #print(inputs.shape)
         
         
