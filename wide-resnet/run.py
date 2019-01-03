@@ -204,3 +204,29 @@ for optimizer in optim_array:
     save_model(filepath, model)
 
 f.close()
+
+
+#train plot
+plt.figure(1)
+for optimizer in optim_array:
+    op = optim_params[optimizer]
+    train_loss = history_resnet[optimizer].history['loss']
+    epoch_count = range(1, len(train_loss) + 1)
+    plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
+plt.legend(optim_array)
+plt.xlabel('Epochs')
+plt.ylabel('Train Loss')
+
+#test plot
+plt.figure(2)
+for optimizer in optim_array:
+    op = optim_params[optimizer]
+    test_loss = history_resnet[optimizer].history['val_loss']
+    epoch_count = range(1, len(test_loss) + 1)
+    plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
+plt.legend(optim_array)
+plt.xlabel('Epochs')
+plt.ylabel('Test Error')
+
+# plt.show()
+plt.savefig('figure_'+dataset+'.png')
