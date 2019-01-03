@@ -70,12 +70,14 @@ hyperparameters = {
     'cifar10': {
         'epoch': 200,
         'batch_size': 128,
-        'decay_after': 50
+        'decay_after': 50,
+        'classes': 10
     },
     'cifar100': {
         'epoch': 200,
         'batch_size': 128,
-        'decay_after': 50  
+        'decay_after': 50,
+        'classes': 100 
     },
     'imagenet': {
         'epoch': 100,
@@ -138,11 +140,6 @@ datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
 
 
-
-model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
-
-
-
 history = {}
 
 for optimizer in optim_array:
@@ -158,9 +155,9 @@ for optimizer in optim_array:
 
 
     if optimizer is not 'adamw':
-        model = WRNModel(depth=16, multiplier=4, wd = op['weight_decay'])
+        model = WRNModel(depth=16,  multiplier=4, wd = op['weight_decay'], classes = hp['classes'])
     else:
-        model = WRNModel(depth=16, multiplier=4, wd = 0)
+        model = WRNModel(depth=16, multiplier=4, wd = 0, classes = hp['classes'])
 
     learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
