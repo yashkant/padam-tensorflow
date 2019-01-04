@@ -2,10 +2,11 @@ from __future__ import absolute_import, division, print_function
 
 import warnings
 import tensorflow as tf
-
+import os
+import sys
 import keras.backend as K
 import numpy as np
-
+os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
 tf.enable_eager_execution()
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
@@ -181,7 +182,7 @@ class Resnet(tf.keras.Model):
 
 
 if __name__ == '__main__':
-    batch_size = 1
+    """batch_size = 1
     nb_epoch = 1
     img_rows, img_cols = 32, 32
     epochs = 1
@@ -210,7 +211,44 @@ if __name__ == '__main__':
 
     dummy_x = tf.zeros((10, 300, 300, 3))
     model._set_inputs(dummy_x)
-    print(model(dummy_x).shape)
+    print(model(dummy_x).shape)"""
+    batch_size = 128
+    nb_epoch = 2
+    img_rows, img_cols = 32, 32
+    epochs = 200
+
+    (trainX, trainY), (testX, testY) = cifar10.load_data()
+
+    #(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2])
+
+    trainX = trainX.astype('float32')
+    trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
+    testX = testX.astype('float32')
+    testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
+    
+    trainY = kutils.to_categorical(trainY, num_classes = 10)
+    testY = kutils.to_categorical(testY, num_classes = 10)
+    
+    #testY = testY.astype(np.int64)
+    #trainY = trainY.astype(np.int64)
+    #testY = tf.one_hot(testY, depth=10).numpy()
+    #trainY = tf.one_hot(trainY, depth=10).numpy()
+
+
+    print(K.image_data_format())
+    #testY = testY.astype(np.int64)
+    model = Resnet(training= False, data_format='channels_last')
+
+    model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
+                      metrics=['accuracy'])
+
+    dummy_x = tf.zeros((10, 300, 300, 3))
+    model._set_inputs(dummy_x)
+    #print(model(dummy_x).shape)
+
+    model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,validation_data=(testX, testY), verbose=1)
+    scores = model.evaluate(testX, testY, batch_size, verbose=1)
+    #print("Final test loss and accuracy :", scores)
 
     # train
     # model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
