@@ -159,7 +159,7 @@ if __name__ == '__main__':
     print(K.image_data_format())
     model = Resnet(data_format='channels_last')
 
-    model._set_inputs(tf.zeros((None, 32, 32, 3)))
+    model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])
