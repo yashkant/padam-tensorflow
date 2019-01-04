@@ -147,7 +147,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
+optim_array = ['amsgrad', 'sgd']
 
 
 history = {}
@@ -156,7 +156,7 @@ for optimizer in optim_array:
 
     logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
     f = open(logfile, "w+")
-
+    print('-'*40, optimizer, '-'*40)
 
     op = optim_params[optimizer]
 
