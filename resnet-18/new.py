@@ -106,7 +106,7 @@ class Resnet(tf.keras.Model):
         # self.flatten = tf.keras.layers.Flatten(data_format = self.data_format)
         # self.fc = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))
     
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs):
         """if self.data_format == 'channels_first':
             # Convert the inputs from channels_last (NHWC) to channels_first (NCHW).
             # This provides a large performance boost on GPU. See
