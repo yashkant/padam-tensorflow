@@ -7,7 +7,7 @@ import keras.backend as K
 import numpy as np
 import os
 import sys
-os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
+#os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
 tf.enable_eager_execution()
 from keras.datasets import cifar10
 import keras.callbacks as callbacks
@@ -43,8 +43,8 @@ class Resnet(tf.keras.Model):
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
             #return model_x
         else : 
-            model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
-                kernel_regularizer=regularizers.l2(self.wd) ))
+            model_x = tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
+                kernel_regularizer=regularizers.l2(self.wd))
             #return tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
              #   kernel_regularizer=regularizers.l2(self.wd) )
         return model_x
@@ -141,9 +141,8 @@ class Resnet(tf.keras.Model):
             # https://www.tensorflow.org/performance/performance_guide#data_formats
             inputs = tf.transpose(inputs, [0, 3, 1, 2])"""
         #print(inputs.shape)
-        
-        for t in range(len(self.model[0][0][0])):
-            inputs = self.model[0][0][0][t](inputs)
+        #print(inputs)
+        inputs = self.model[0][0][0](inputs)
         inputs = self.model[0][0][1](inputs)
 
         inputs = self.relu(inputs)
@@ -155,7 +154,8 @@ class Resnet(tf.keras.Model):
                 # 1st basic building block in each blk uses proj shortcut and stride of 2 else normal shortcut
                 #print(inputs.shape)
                 if (basic_bblk == 0 and blk!=0):
-                    short = self.conv2d_fixed_padding(filters=self.initial_filters*(2**blk), kernel_size=1, strides=2)(inputs)
+                    short = self.conv2d_fixed_padding(filters=self.initial_filters*(2**blk), kernel_size=1, strides=2)[0](inputs)
+                    short = self.conv2d_fixed_padding(filters=self.initial_filters*(2**blk), kernel_size=1, strides=2)[1](short)
                     #sprint(blk)
                     #print(short.shape)
 
@@ -170,8 +170,9 @@ class Resnet(tf.keras.Model):
                     if blk!=0 and basic_bblk==0:
                         if lyr==0:
                             for q in range(len(self.model[blk_index][basic_bblk][lyr])):
-                                inputs = self.model[blk_index][basic_bblk][lyr](inputs)
-                        inputs = self.model[blk_index][basic_bblk][lyr](inputs)
+                                inputs = self.model[blk_index][basic_bblk][lyr][q](inputs)
+                        else:
+                        	inputs = self.model[blk_index][basic_bblk][lyr](inputs)
 
                     else:
                         inputs = self.model[blk_index][basic_bblk][lyr](inputs)
@@ -206,31 +207,34 @@ class Resnet(tf.keras.Model):
         inputs = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd), kernel_initializer =tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None)
                                            , bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None))(inputs)
 
-        #print(inputs.shape)
+        #print(inputs)
         return inputs  #tf.nn.softmax(inputs)
 
 
 if __name__ == '__main__':
     batch_size = 128
-    nb_epoch = 20
+    nb_epoch = 2
     img_rows, img_cols = 32, 32
-    epochs = 20
+    epochs = 200
 
     (trainX, trainY), (testX, testY) = cifar10.load_data()
+
+    #(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2])
 
     trainX = trainX.astype('float32')
     trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
     testX = testX.astype('float32')
     testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
-
+    
     trainY = kutils.to_categorical(trainY)
     testY = kutils.to_categorical(testY)
-
-    # testY = tf.one_hot(testY, depth=10).numpy()
-    # trainY = tf.one_hot(trainY, depth=10).numpy()
-
+    
     #testY = testY.astype(np.int64)
-    #testX = testX.astype(np.int64)
+    #trainY = trainY.astype(np.int64)
+    #testY = tf.one_hot(testY, depth=10).numpy()
+    #trainY = tf.one_hot(trainY, depth=10).numpy()
+
+
     print(K.image_data_format())
     #testY = testY.astype(np.int64)
     model = Resnet(training= False, data_format='channels_last')
@@ -240,12 +244,11 @@ if __name__ == '__main__':
 
     dummy_x = tf.zeros((10, 300, 300, 3))
     model._set_inputs(dummy_x)
-    print(model(dummy_x).shape)
+    #print(model(dummy_x).shape)
 
-    model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
-              validation_data=(testX, testY), vebose=1)
+    model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,validation_data=(testX, testY), verbose=1)
     scores = model.evaluate(testX, testY, batch_size, verbose=1)
-    print("Final test loss and accuracy :", scores)
+    #print("Final test loss and accuracy :", scores)
     
     
  
