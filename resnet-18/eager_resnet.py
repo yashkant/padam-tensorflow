@@ -204,8 +204,8 @@ class Resnet(tf.keras.Model):
         #print(inputs.shape)
         
         
-        inputs = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd), kernel_initializer =tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None)
-                                           , bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None))(inputs)
+        inputs = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))#, kernel_initializer =tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None)
+                                           #, bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None))(inputs)
 
         #print(inputs)
         return inputs  #tf.nn.softmax(inputs)
@@ -226,8 +226,8 @@ if __name__ == '__main__':
     testX = testX.astype('float32')
     testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
     
-    trainY = kutils.to_categorical(trainY)
-    testY = kutils.to_categorical(testY)
+    trainY = kutils.to_categorical(trainY, num_classes = 10)
+    testY = kutils.to_categorical(testY, num_classes = 10)
     
     #testY = testY.astype(np.int64)
     #trainY = trainY.astype(np.int64)
