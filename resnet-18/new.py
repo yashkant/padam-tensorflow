@@ -118,22 +118,22 @@ class Resnet(tf.keras.Model):
         for block in self.blocks_1:
             block_x = block[0](inputs)
             block_y = block[1](inputs)
-            inputs = block_x+ block_y
+            inputs = tf.keras.layers.Activation('relu')(block_x+ block_y)
 
         for block in self.blocks_2:
             block_x = block[0](inputs)
             block_y = block[1](inputs)
-            inputs = block_x+ block_y
+            inputs = tf.keras.layers.Activation('relu')(block_x+ block_y)
 
         for block in self.blocks_3:
             block_x = block[0](inputs)
             block_y = block[1](inputs)
-            inputs = block_x+ block_y
+            inputs = tf.keras.layers.Activation('relu')(block_x+ block_y)
 
         for block in self.blocks_4:
             block_x = block[0](inputs)
             block_y = block[1](inputs)
-            inputs = block_x+ block_y
+            inputs = tf.keras.layers.Activation('relu')(block_x+ block_y)
 
         return self.final_dense(inputs)
 
