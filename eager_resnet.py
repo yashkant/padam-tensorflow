@@ -49,12 +49,12 @@ class Resnet(tf.keras.Model):
         
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides = strides))
         layer_a.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
-            scale=True, trainable=self.training, fused=True))
+            scale=True, fused=True))
         layer_a.append(tf.keras.layers.Activation('relu'))
     
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides=1))
         layer_a.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
-            scale=True, trainable=self.training, fused=True))
+            scale=True, fused=True))
     
         return layer_a
     
@@ -101,7 +101,7 @@ class Resnet(tf.keras.Model):
     
     
     # resnet with basic building blocks
-    def __init__(self, training, data_format, initial_filters=64, block_list=[2, 2, 2, 2], classes=10, wt_decay = 0.001):
+    def __init__(self, data_format, initial_filters=64, block_list=[2, 2, 2, 2], classes=10, wt_decay = 0.001):
 
         """training: Either True or False, whether we are currently training the
            model. Needed for batch norm.
@@ -115,7 +115,6 @@ class Resnet(tf.keras.Model):
         self.data_format = data_format
         self.wd = wt_decay
         self.classes = classes
-        self.training = training
         self.channel_axis = 1 if self.data_format == 'channels_first' else -1
     
         self.model = self._create_ResnetModel(filters = initial_filters)
@@ -124,7 +123,7 @@ class Resnet(tf.keras.Model):
         self.flatten = tf.keras.layers.Flatten(data_format = self.data_format)
         self.fc = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))
     
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs,mask=None):
         """if self.data_format == 'channels_first':
             # Convert the inputs from channels_last (NHWC) to channels_first (NCHW).
             # This provides a large performance boost on GPU. See
@@ -144,7 +143,7 @@ class Resnet(tf.keras.Model):
                     #sprint(blk)
                     #print(short.shape)
                     short = tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
-                                     scale=True, trainable=training, fused=True)(short)
+                                     scale=True, fused=True)(short)
                     #print(short.shape)
                 else :
                     short = inputs
@@ -237,7 +236,7 @@ if __name__ == '__main__':
 
     print(K.image_data_format())
     #testY = testY.astype(np.int64)
-    model = Resnet(training= False, data_format='channels_last')
+    model = Resnet(data_format='channels_last')
 
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])
