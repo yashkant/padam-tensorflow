@@ -63,7 +63,7 @@ class Resnet(tf.keras.Model):
         
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides = strides))
         layer_a.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True, scale=True, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0)))
-        layer_a.append(self.relu)
+        layer_a.append(tf.keras.layers.Activation('relu'))
         layer_a.append(self.conv2d_fixed_padding(filters = filters, kernel_size = 3, strides=1))
         layer_a.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True, scale=True, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0)))
     
@@ -127,7 +127,7 @@ class Resnet(tf.keras.Model):
         
         
         # self.bn = tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True, scale=True, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0))
-        self.relu = tf.keras.layers.Activation('relu')
+        #self.relu = tf.keras.layers.Activation('relu')
 
         self.model = self._create_ResnetModel(filters = self.initial_filters)
 
@@ -145,7 +145,7 @@ class Resnet(tf.keras.Model):
         inputs = self.model[0][0][0](inputs)
         inputs = self.model[0][0][1](inputs)
 
-        inputs = self.relu(inputs)
+        inputs = tf.keras.layers.Activation('relu')(inputs)
 
         #print(inputs.shape)
         for blk in range(self.num_blocks):
@@ -180,7 +180,7 @@ class Resnet(tf.keras.Model):
                 #print(inputs.shape)  
                 #print(short.shape)
                 inputs = inputs + short
-                inputs = self.relu(inputs)
+                inputs = tf.keras.layers.Activation('relu')(inputs)
 
         #print(inputs.shape)
         # The current top layer has shape
