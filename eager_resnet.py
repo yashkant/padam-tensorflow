@@ -85,9 +85,10 @@ class Resnet(tf.keras.Model):
         model = []    
         # conv1
         conv1=[]
-        initial_layer = self.conv2d_fixed_padding(filters = 64, kernel_size = 7, strides = 2)
+        initial_layer = self.conv2d_fixed_padding(filters = 64, kernel_size = 3, strides = 1)
         conv1.append(initial_layer)
-        conv1.append(tf.keras.layers.MaxPooling2D((3, 3), strides = 2, padding = "same", data_format = self.data_format))
+        conv1.append(tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
+            scale=True, fused=True))
         
         model.append([conv1])
         
@@ -119,7 +120,7 @@ class Resnet(tf.keras.Model):
     
         self.model = self._create_ResnetModel(filters = initial_filters)
 
-        self.avg_pool = tf.keras.layers.GlobalAveragePooling2D()
+        self.avg_pool = tf.keras.layers.AveragePooling2D(pool_size=(4, 4), strides=None, padding='valid', data_format=self.data_format)
         self.flatten = tf.keras.layers.Flatten(data_format = self.data_format)
         self.fc = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))
     
@@ -132,6 +133,9 @@ class Resnet(tf.keras.Model):
         #print(inputs.shape)
         for i in range(len(self.model[0][0])):
             inputs = self.model[0][0][i](inputs)
+
+        inputs = tf.nn.relu(inputs)
+
         #print(inputs.shape)
         for blk in range(self.num_blocks):
             blk_index = blk+1
