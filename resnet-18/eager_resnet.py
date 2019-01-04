@@ -239,12 +239,14 @@ if __name__ == '__main__':
     #testY = testY.astype(np.int64)
     model = Resnet(training= False, data_format='channels_last')
 
+    dummy_x = tf.zeros((batch_size, 32, 32, 3))
+    model._set_inputs(dummy_x)
+    #print(model(dummy_x).shape)
+
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
-    dummy_x = tf.zeros((10, 300, 300, 3))
-    model._set_inputs(dummy_x)
-    #print(model(dummy_x).shape)
+
 
     model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,validation_data=(testX, testY), verbose=1)
     scores = model.evaluate(testX, testY, batch_size, verbose=1)
