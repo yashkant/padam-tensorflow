@@ -13,9 +13,9 @@ import keras.callbacks as callbacks
 import keras.utils.np_utils as kutils
 from keras import regularizers
 
-_BATCH_NORM_DECAY = 0.997
-_BATCH_NORM_EPSILON = 1e-5
-DEFAULT_DTYPE = tf.float32
+# _BATCH_NORM_DECAY = 0.997
+# _BATCH_NORM_EPSILON = 1e-5
+# DEFAULT_DTYPE = tf.float32
 
 class Resnet(tf.keras.Model):
     
@@ -158,30 +158,15 @@ if __name__ == '__main__':
 
     print(K.image_data_format())
     model = Resnet(data_format='channels_last')
-    dummy_x = tf.zeros((batch_size, 32, 32, 3))
-    model._set_inputs(dummy_x)
+
+    model._set_inputs(tf.zeros((None, 32, 32, 3)))
 
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
-    #print(model(dummy_x).shape)
-
     model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,validation_data=(testX, testY), verbose=1)
     scores = model.evaluate(testX, testY, batch_size, verbose=1)
-    
-    #print("Final test loss and accuracy :", scores)
-
-    # train
-    # model.fit(trainX, trainY, batch_size=batch_size, epochs=epochs,
-              # validation_data=(testX, testY), verbose=1)
-
-    # evaluate on test set
-    # scores = model.evaluate(testX, testY, batch_size, verbose=1)
-    # print("Final test loss and accuracy :", scores)
-    
-    
- 
- 
+     
  
  
  
