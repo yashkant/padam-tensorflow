@@ -28,26 +28,15 @@ class Resnet(tf.keras.Model):
         # dimensions of `inputs` (as opposed to using `tf.layers.conv2d` alone).
         # Returns output feature map of same spatial size as input if stride=1 else 
         # halves the input dimensions.
-        model_x = []
         if strides > 1:
             pad_total = kernel_size - 1
             pad_beg = pad_total // 2
             pad_end = pad_total - pad_beg
-            model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
-            model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False,
-                           kernel_regularizer=regularizers.l2(self.wd)))
-            #kernel_initializer=  tf.keras.initializers.VarianceScaling(scale=1.0/27, mode='fan_in',distribution='uniform',
-            #model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),
-            #	tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False,
-            #	           kernel_regularizer=regularizers.l2(self.wd))])
+            model_x = tf.keras.Sequential([tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format),tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' )])
            # model_x.append(tf.keras.layers.ZeroPadding2D([[pad_beg, pad_end], [pad_beg, pad_end]], data_format = self.data_format))
-            #return model_x
+            return model_x
         else : 
-            model_x = tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
-                kernel_regularizer=regularizers.l2(self.wd))
-            #return tf.keras.layers.Conv2D(filters, kernel_size, strides=1, padding = "same", data_format = self.data_format, use_bias = False,
-             #   kernel_regularizer=regularizers.l2(self.wd) )
-        return model_x
+            return tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling', kernel_regularizer=regularizers.l2(self.wd) )
         #model_x.append(tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "same", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling' ))
               
      
@@ -95,8 +84,12 @@ class Resnet(tf.keras.Model):
         # For resnet18, blocklist = [2, 2, 2, 2], eack blk made of 2 basic building blocks.
         model = []    
         # conv1
-        initial_layer = self.conv2d_fixed_padding(filters = 64, kernel_size = 3, strides = 1)      
-        model.append([[initial_layer, tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True, scale=True, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0))]])
+        conv1=[]
+        initial_layer = self.conv2d_fixed_padding(filters = 64, kernel_size = 7, strides = 2)
+        conv1.append(initial_layer)
+        conv1.append(tf.keras.layers.MaxPooling2D((3, 3), strides = 2, padding = "same", data_format = self.data_format))
+        
+        model.append([conv1])
         
         # conv2, conv3, conv4, conv5
         for i in range(len(self.block_list)):
@@ -104,11 +97,10 @@ class Resnet(tf.keras.Model):
             blk = self.block_layer(num_filters, strides=(1 if i==0 else strides), blocks=self.block_list[i])
             model.append(blk)
     
-        return model
-    
+        return model    
     
     # resnet with basic building blocks
-    def __init__(self, training, data_format, initial_filters=64, block_list=[2, 2, 2, 2], classes=10, wt_decay = 0.001):
+    def __init__(self, data_format, initial_filters=64, block_list=[2, 2, 2, 2], classes=10, wt_decay = 0.001):
 
         """training: Either True or False, whether we are currently training the
            model. Needed for batch norm.
@@ -122,7 +114,6 @@ class Resnet(tf.keras.Model):
         self.data_format = data_format
         self.wd = wt_decay
         self.classes = classes
-        self.training = training
         self.channel_axis = 1 if self.data_format == 'channels_first' else -1
         
         
@@ -141,12 +132,8 @@ class Resnet(tf.keras.Model):
             # https://www.tensorflow.org/performance/performance_guide#data_formats
             inputs = tf.transpose(inputs, [0, 3, 1, 2])"""
         #print(inputs.shape)
-        #print(inputs)
-        inputs = self.model[0][0][0](inputs)
-        inputs = self.model[0][0][1](inputs)
-
-        inputs = tf.keras.layers.Activation('relu')(inputs)
-
+        for i in range(len(self.model[0][0])):
+            inputs = self.model[0][0][i](inputs)
         #print(inputs.shape)
         for blk in range(self.num_blocks):
             blk_index = blk+1
@@ -154,34 +141,22 @@ class Resnet(tf.keras.Model):
                 # 1st basic building block in each blk uses proj shortcut and stride of 2 else normal shortcut
                 #print(inputs.shape)
                 if (basic_bblk == 0 and blk!=0):
-                    short = self.conv2d_fixed_padding(filters=self.initial_filters*(2**blk), kernel_size=1, strides=2)[0](inputs)
-                    short = self.conv2d_fixed_padding(filters=self.initial_filters*(2**blk), kernel_size=1, strides=2)[1](short)
+                    short = self.conv2d_fixed_padding(filters=self.initial_filters*(2**blk), kernel_size=1, strides=2)(inputs)
                     #sprint(blk)
                     #print(short.shape)
-
                     short = tf.keras.layers.BatchNormalization(axis=self.channel_axis, momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
-                                     scale=True, trainable=training, fused=True, gamma_initializer = tf.keras.initializers.RandomUniform(minval = 0, maxval = 1.0))(short)
-
+                                     scale=True, trainable=training, fused=True)(short)
                     #print(short.shape)
                 else :
                     short = inputs
                     #print(inputs.shape)
                 for lyr in range(len(self.model[blk_index][basic_bblk])):
-                    if blk!=0 and basic_bblk==0:
-                        if lyr==0:
-                            for q in range(len(self.model[blk_index][basic_bblk][lyr])):
-                                inputs = self.model[blk_index][basic_bblk][lyr][q](inputs)
-                        else:
-                        	inputs = self.model[blk_index][basic_bblk][lyr](inputs)
-
-                    else:
-                        inputs = self.model[blk_index][basic_bblk][lyr](inputs)
+                    inputs = self.model[blk_index][basic_bblk][lyr](inputs)
                     #print(inputs.shape)
                 #print(inputs.shape)  
                 #print(short.shape)
                 inputs = inputs + short
-                inputs = tf.keras.layers.Activation('relu')(inputs)
-
+                inputs = tf.nn.relu(inputs)
         #print(inputs.shape)
         # The current top layer has shape
         # `batch_size x pool_size x pool_size x final_size`.
@@ -200,15 +175,11 @@ class Resnet(tf.keras.Model):
         #inputs = tf.squeeze(inputs, axes)
         inputs = self.avg_pool(inputs)
         #print(inputs.shape)
-        inputs = self.flatten(inputs) 
+        inputs = self.flatten(inputs)
         #print(inputs.shape)
-        
-        
-        inputs = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))#, kernel_initializer =tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None)
-                                           #, bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None))(inputs)
-
-        #print(inputs)
-        return inputs  #tf.nn.softmax(inputs)
+        inputs = self.fc(inputs)
+        #print(inputs.shape)
+        return tf.nn.softmax(inputs)
 
 
 if __name__ == '__main__':
@@ -237,9 +208,9 @@ if __name__ == '__main__':
 
     print(K.image_data_format())
     #testY = testY.astype(np.int64)
-    model = Resnet(training= False, data_format='channels_last')
+    model = Resnet(data_format='channels_last')
 
-    dummy_x = tf.zeros((10, 32, 32, 3))
+    dummy_x = tf.zeros((batch_size, 32, 32, 3))
     model._set_inputs(dummy_x)
 
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
