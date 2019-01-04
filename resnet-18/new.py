@@ -76,7 +76,7 @@ class Resnet(tf.keras.Model):
         self.blocks_4 = self.build_blocks(512, self.block_list[3], stride=2)
 
         self.final_dense = tf.keras.Sequential([
-            tf.keras.layers.AveragePooling2D(pool_size=8), 
+            tf.keras.layers.AveragePooling2D(pool_size=4), 
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(self.classes, activation='softmax')
             ])
