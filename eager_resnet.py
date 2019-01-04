@@ -242,7 +242,7 @@ if __name__ == '__main__':
     model.compile(optimizer=tf.train.AdamOptimizer(0.001), loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
-    dummy_x = tf.zeros((10, 300, 300, 3))
+    dummy_x = tf.zeros((batch_size, 32, 32, 3))
     model._set_inputs(dummy_x)
     #print(model(dummy_x).shape)
 
