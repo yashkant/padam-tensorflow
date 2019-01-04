@@ -56,7 +56,7 @@ class Resnet(tf.keras.Model):
 
         return block
 
-    def _create_ResnetModel(self, filters = 64, kernel_size = 3, strides = 2):
+    def _create_ResnetModel(self, filters):
         # filters : Number of fliters used in 1st blk (after initial layer)
         # kernel_size : kerel size for all the basic building blocks.
         # blocklist : List of values, each value shows the number of basic building blocks in the ith blk.
@@ -65,7 +65,7 @@ class Resnet(tf.keras.Model):
 
         self.intial_conv = tf.keras.Sequential([
             tf.keras.layers.ZeroPadding2D(1),
-            tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding = "valid", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling'),
+            tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding = "valid", data_format = self.data_format, use_bias = False, kernel_initializer='VarianceScaling'),
             tf.keras.layers.BatchNormalization(axis=self.channel_axis),
             tf.keras.layers.Activation('relu')
             ])
@@ -153,8 +153,8 @@ if __name__ == '__main__':
     trainY = kutils.to_categorical(trainY, num_classes = 10)
     testY = kutils.to_categorical(testY, num_classes = 10)
     
-    testY = testY.astype(np.int64)
-    trainY = trainY.astype(np.int64)
+    #testY = testY.astype(np.int64)
+    #trainY = trainY.astype(np.int64)
 
     print(K.image_data_format())
     model = Resnet(data_format='channels_last')
