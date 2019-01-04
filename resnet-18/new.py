@@ -35,7 +35,7 @@ class Resnet(tf.keras.Model):
             tf.keras.layers.ZeroPadding2D(1),
             tf.keras.layers.Conv2D(filters = out_filters, kernel_size = 3, strides= stride, padding = "valid", use_bias = False, kernel_initializer='VarianceScaling'),
             tf.keras.layers.BatchNormalization(axis=self.channel_axis),
-            tf.keras.layers.Activation('relu')
+            tf.keras.layers.Activation('relu'),
 
             tf.keras.layers.ZeroPadding2D(1),
             tf.keras.layers.Conv2D(filters = out_filters, kernel_size = 3, strides= 1, padding = "valid", use_bias = False, kernel_initializer='VarianceScaling'),
