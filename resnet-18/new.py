@@ -23,7 +23,7 @@ class Resnet(tf.keras.Model):
         blocks = []
         strides = [stride] + [1]*(num_blocks-1)
         for _stride in strides:
-            blocks.append(make_basic_block(self.in_filters, out_filters, _stride))
+            blocks.append(self.make_basic_block(self.in_filters, out_filters, _stride))
             self.in_filters = out_filters
         return blocks
 
@@ -46,7 +46,7 @@ class Resnet(tf.keras.Model):
 
         if stride != 1 or in_filters != out_filters:
             shortcut = tf.keras.Sequential([
-                tf.keras.layers.Conv2D(filters = out_filters, kernel_size = 3, strides= stride, padding = "valid", use_bias = False, kernel_initializer='VarianceScaling'),
+                tf.keras.layers.Conv2D(filters = out_filters, kernel_size = 1, strides= stride, padding = "valid", use_bias = False, kernel_initializer='VarianceScaling'),
                  tf.keras.layers.BatchNormalization(axis=self.channel_axis)])
         else:
             shortcut = tf.keras.Sequential([])
@@ -97,7 +97,7 @@ class Resnet(tf.keras.Model):
         self.data_format = data_format
         self.wd = wt_decay
         self.classes = classes
-        self.training = training
+        # self.training = training
         self.channel_axis = 1 if self.data_format == 'channels_first' else -1
     
         self._create_ResnetModel(filters = initial_filters)
