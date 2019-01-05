@@ -73,12 +73,12 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch': 200,
+        'epoch': 50,
         'batch_size': 128,
         'decay_after': 50
     },
     'cifar100': {
-        'epoch': 200,
+        'epoch': 50,
         'batch_size': 128,
         'decay_after': 50  
     },
@@ -92,7 +92,7 @@ hyperparameters = {
 optim_params = {
     'padam': {
         'weight_decay': 0.0005,
-        'lr': 0.1,
+        'lr': 0.1/10,
         'p': 0.125,
         'b1': 0.9,
         'b2': 0.999,
@@ -101,7 +101,7 @@ optim_params = {
     },
     'adam': {
         'weight_decay': 0.0001,
-        'lr': 0.001,
+        'lr': 0.001/10,
         'b1': 0.9,
         'b2': 0.99,
         'color': 'orange',
@@ -109,7 +109,7 @@ optim_params = {
     },
     'adamw': {
         'weight_decay': 0.025,
-        'lr': 0.001,
+        'lr': 0.001/10,
         'b1': 0.9,
         'b2': 0.99,
         'color': 'magenta',
@@ -117,7 +117,7 @@ optim_params = {
     },
     'amsgrad': {
         'weight_decay': 0.0001,
-        'lr': 0.001,
+        'lr': 0.001/10,
         'b1': 0.9,
         'b2': 0.99,
         'color' : 'darkgreen',
@@ -125,7 +125,7 @@ optim_params = {
     },
     'sgd': {
         'weight_decay': 0.0005,
-        'lr': 0.1,
+        'lr': 0.1/10,
         'm': 0.9,
         'color': 'blue',
         'linestyle':'-'
@@ -151,7 +151,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
+optim_array = ['padam', 'adam','amsgrad', 'sgd']
 
 
 history = {}
@@ -210,7 +210,7 @@ for optimizer in optim_array:
 
     print("Final test loss and accuracy:", scores)
     # filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
-    save_model(filepath, model)
+    save_model(save_model_filepath, model)
     # f.close()
 
 #train plot
