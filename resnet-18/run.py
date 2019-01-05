@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 print(os.getcwd())
-# os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
+os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
 import tensorflow as tf
 tf.enable_eager_execution()
 import numpy as np
@@ -25,7 +25,7 @@ from padam import Padam
 from amsgrad import AMSGrad
 
 
-dataset = 'cifar100'
+dataset = 'cifar10'
 optimizer = 'adam'
 
 if dataset == 'cifar10':
@@ -71,7 +71,7 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch': 200,
+        'epoch': 50,
         'batch_size': 128,
         'decay_after': 50,
         'classes':10
@@ -79,7 +79,7 @@ hyperparameters = {
     'cifar100': {
         'epoch': 200,
         'batch_size': 128,
-        'decay_after': 50
+        'decay_after': 50,
         'classes':100  
     },
     'imagenet': {
