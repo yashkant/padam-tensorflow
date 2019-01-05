@@ -68,7 +68,7 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch':50,
+        'epoch':2,
         'batch_size': 128,
         'decay_after': 50,
         'classes': 10
@@ -147,7 +147,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['padam', 'adam', 'adamw']
+optim_array = ['amsgrad', 'sgd'] #'padam', 'adam', 'adamw']
 
 
 history = {}
