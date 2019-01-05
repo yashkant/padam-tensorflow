@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 print(os.getcwd())
-# os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
+os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
 import tensorflow as tf
 tf.enable_eager_execution()
 import numpy as np
@@ -25,9 +25,10 @@ from padam import Padam
 from amsgrad import AMSGrad
 
 dataset = 'cifar10'     
-continue_training = True # Flag to continue training        
-continue_epoch = 50     
-  
+continue_training = False # Flag to continue training        
+continue_epoch = 30     
+padam_p = 0.125
+
 # Model is saved is 'model_{optim}_{dataset}_epochs{X}.h5' where X = continue_epoch 28  dataset = 'cifar100'
 # Csv file is saved as 'log_{optim}_{dataset}.h5'
 
@@ -75,13 +76,13 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch': 50,
+        'epoch': 30,
         'batch_size': 128,
         'decay_after': 50,
         'classes':10
     },
     'cifar100': {
-        'epoch': 200,
+        'epoch': 30,
         'batch_size': 128,
         'decay_after': 50,
         'classes':100  
@@ -155,12 +156,13 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
-
+optim_array = ['padam']
+p_values = [0.25, 0.125, 0.0625]
 
 history = {}
 
 for optimizer in optim_array:
+    for p_value in p_values: 
 
     logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
     print('-'*40, optimizer, '-'*40)
