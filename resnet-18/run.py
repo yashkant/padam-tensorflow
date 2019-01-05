@@ -229,7 +229,6 @@ for optimizer in optim_array:
 
 
 if not pretrained:
-
     plt.figure(1)
     for optimizer in optim_array:
         op = optim_params[optimizer]
