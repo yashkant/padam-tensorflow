@@ -25,7 +25,13 @@ print(sys.path)
 from padam import Padam
 from amsgrad import AMSGrad
 
-dataset = 'cifar100'
+dataset = 'cifar10'
+continue_training = True # Flag to continue training 
+continue_epoch = 50
+
+# Model is saved is 'model_{optim}_{dataset}_epochs{X}.h5' where X = continue_epoch
+# Csv file is saved as 'log_{optim}_{dataset}.h5'
+
 
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
@@ -150,25 +156,32 @@ datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
 
 
+
 history = {}
 
 for optimizer in optim_array:
 
-    logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
-    f = open(logfile, "w+")
-
-
     op = optim_params[optimizer]
-
     if optimizer == 'adamw' and dataset=='imagenet':
         op['weight_decay'] = 0.05 
-
 
     if optimizer is not 'adamw':
         model = WRNModel(depth=16,  multiplier=4, wd = op['weight_decay'], classes = hp['classes'])
     else:
         model = WRNModel(depth=16, multiplier=4, wd = 0, classes = hp['classes'])
 
+    model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
+
+    logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
+
+    if(continue_training):
+        load_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch)+'.h5'
+        save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch+epochs)+'.h5'
+        model = load_model(load_model_filepath, model)
+    else:
+        save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(epochs)+'.h5'
+
+    # f = open(logfile, "a+")
     learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
     
@@ -184,10 +197,6 @@ for optimizer in optim_array:
     elif optimizer == 'sgd':
         optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
 
-    # dummy_x = tf.zeros((batch_size, 32, 32, 3))
-    model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
-    # model(dummy_x)
-    # print(model(dummy_x).shape)
     model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy', 'top_k_categorical_accuracy'], global_step=tf.train.get_global_step())
     
     csv_logger = CSVLogger(logfile, append=True, separator=';')
@@ -195,9 +204,8 @@ for optimizer in optim_array:
                                                                  validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1, callbacks = [csv_logger])
     scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
     print("Final test loss and accuracy:", scores)
-    filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
     save_model(filepath, model)
-    f.close()
+    # f.close()
 
 
 #train plot
