@@ -25,7 +25,7 @@ print(sys.path)
 from padam import Padam
 from amsgrad import AMSGrad
 
-dataset = 'cifar100'
+dataset = 'cifar10'
 
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
@@ -68,7 +68,7 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch': 200,
+        'epoch':50,
         'batch_size': 128,
         'decay_after': 50,
         'classes': 10
