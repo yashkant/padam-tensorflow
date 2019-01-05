@@ -74,7 +74,7 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch': 200,
+        'epoch':50,
         'batch_size': 128,
         'decay_after': 50,
         'classes': 10
@@ -153,7 +153,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
+optim_array = ['padam', 'adam', 'adamw']
 
 
 
@@ -161,6 +161,8 @@ history = {}
 
 for optimizer in optim_array:
 
+    print('-'*40, optimizer, '-'*40)
+    logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
     op = optim_params[optimizer]
     if optimizer == 'adamw' and dataset=='imagenet':
         op['weight_decay'] = 0.05 
