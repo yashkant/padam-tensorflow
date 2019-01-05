@@ -40,7 +40,7 @@ elif dataset == 'cifar100':
     from keras.datasets import cifar100
     (trainX, trainY), (testX, testY) = cifar100.load_data()
 
-# (trainX, trainY), (testX, testY) = (trainX[:20], trainY[:20]), (testX[:20], testY[:20])
+(trainX, trainY), (testX, testY) = (trainX[:20], trainY[:20]), (testX[:20], testY[:20])
 
 def preprocess(t):
     paddings = tf.constant([[2, 2,], [2, 2],[0,0]])
@@ -147,7 +147,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
+optim_array = ['padam', 'adam]#, 'adamw', 'amsgrad', 'sgd']
 
 
 history = {}
