@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 print(os.getcwd())
-# os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
+os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
 import tensorflow as tf
 tf.enable_eager_execution()
 import numpy as np
@@ -40,7 +40,7 @@ elif dataset == 'cifar100':
     from keras.datasets import cifar100
     (trainX, trainY), (testX, testY) = cifar100.load_data()
 
-(trainX, trainY), (testX, testY) = (trainX[:20], trainY[:20]), (testX[:20], testY[:20])
+# (trainX, trainY), (testX, testY) = (trainX[:20], trainY[:20]), (testX[:20], testY[:20])
 
 def preprocess(t):
     paddings = tf.constant([[2, 2,], [2, 2],[0,0]])
@@ -130,8 +130,8 @@ optim_params = {
 }
 
 hp = hyperparameters[dataset]
-epochs = 5 #hp['epoch']
-batch_size = 5 #hp['batch_size']
+epochs = hp['epoch']
+batch_size = hp['batch_size']
 
 img_rows, img_cols = 32, 32
 train_size = trainX.shape[0]
@@ -147,7 +147,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['padam', 'adam']#, 'adamw', 'amsgrad', 'sgd']
+optim_array = ['padam', 'adam', 'adamw', 'amsgrad', 'sgd']
 
 
 history = {}
