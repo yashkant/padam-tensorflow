@@ -32,8 +32,6 @@ continue_epoch = 50
 # Csv file is saved as 'log_{optim}_{dataset}.h5'
 
 
-optimizer = 'adam'
-
 if dataset == 'cifar10':
     MEAN = [0.4914, 0.4822, 0.4465]
     STD_DEV = [0.2023, 0.1994, 0.2010]
@@ -77,7 +75,7 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch': 200,
+        'epoch': 50,
         'batch_size': 128,
         'decay_after': 50,
         'classes':10
@@ -177,6 +175,8 @@ for optimizer in optim_array:
         model = Resnet(data_format='channels_last', classes=hp['classes'], wt_decay = op['weight_decay'])
     else:
         model = Resnet(data_format='channels_last', classes=hp['classes'], wt_decay  = 0)
+    
+    model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 
     learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
@@ -203,7 +203,6 @@ for optimizer in optim_array:
     elif optimizer == 'sgd':
         optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
 
-    model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 
     model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy', 'top_k_categorical_accuracy'], global_step=tf.train.get_global_step())
 
