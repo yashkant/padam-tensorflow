@@ -147,7 +147,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['amsgrad', 'sgd']
+optim_array = ['padam', 'adam', 'adamw']
 
 
 history = {}
