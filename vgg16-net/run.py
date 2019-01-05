@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 print(os.getcwd())
-os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
+# os.environ["CUDA_VISIBLE_DEVICES"]= sys.argv[1]
 import tensorflow as tf
 tf.enable_eager_execution()
 import numpy as np
@@ -171,7 +171,7 @@ for optimizer in optim_array:
         model = VGG('VGG16', num_classes, op['weight_decay'])
     else:
         model = VGG('VGG16', num_classes, 0)
-   model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
+    model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 
     logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
 
