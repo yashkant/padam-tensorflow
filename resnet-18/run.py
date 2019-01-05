@@ -24,8 +24,14 @@ print(sys.path)
 from padam import Padam
 from amsgrad import AMSGrad
 
+dataset = 'cifar10'     
+continue_training = True # Flag to continue training        
+continue_epoch = 50     
+  
+# Model is saved is 'model_{optim}_{dataset}_epochs{X}.h5' where X = continue_epoch 28  dataset = 'cifar100'
+# Csv file is saved as 'log_{optim}_{dataset}.h5'
 
-dataset = 'cifar100'
+
 optimizer = 'adam'
 
 if dataset == 'cifar10':
@@ -79,7 +85,7 @@ hyperparameters = {
     'cifar100': {
         'epoch': 200,
         'batch_size': 128,
-        'decay_after': 50
+        'decay_after': 50,
         'classes':100  
     },
     'imagenet': {
@@ -159,7 +165,7 @@ history = {}
 for optimizer in optim_array:
 
     logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
-    f = open(logfile, "w+")
+    print('-'*40, optimizer, '-'*40)
 
 
     op = optim_params[optimizer]
@@ -175,6 +181,14 @@ for optimizer in optim_array:
     learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
                                        hp['decay_after']*train_size, 0.1, staircase=True)
 
+    logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
+
+    if(continue_training):
+        load_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch)+'.h5'
+        save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch+epochs)+'.h5'
+        model = load_model(load_model_filepath, model)
+    else:
+        save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(epochs)+'.h5'
 
 
     if optimizer == 'padam':
@@ -201,9 +215,9 @@ for optimizer in optim_array:
     scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
 
     print("Final test loss and accuracy:", scores)
-    filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
+    #filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
     save_model(filepath, model)
-    f.close()
+    #f.close()
 
 #train plot
 plt.figure(1)
