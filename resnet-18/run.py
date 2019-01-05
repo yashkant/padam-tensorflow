@@ -215,7 +215,7 @@ for optimizer in optim_array:
 
     print("Final test loss and accuracy:", scores)
     #filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
-    save_model(filepath, model)
+    save_model(save_model_filepath, model)
     #f.close()
 
 #train plot
