@@ -204,7 +204,7 @@ class Resnet(tf.keras.Model):
         #print(inputs.shape)
         
         
-        inputs = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))#, kernel_initializer =tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None)
+        inputs = tf.keras.layers.Dense(self.classes, kernel_regularizer=regularizers.l2(self.wd))(inputs)#, kernel_initializer =tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None)
                                            #, bias_initializer = tf.keras.initializers.VarianceScaling(scale=1.0/3, mode='fan_in', distribution='uniform', seed=None))(inputs)
 
         #print(inputs)

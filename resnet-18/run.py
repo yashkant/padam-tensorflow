@@ -24,7 +24,7 @@ print(sys.path)
 from amsgrad import AMSGrad
 from padam import Padam
 
-pretrained = False
+pretrained = True
 dataset = 'cifar10'
 
 if dataset == 'cifar10':
@@ -136,14 +136,14 @@ epochs = hp['epoch']
 #(trainX, trainY), (testX, testY) = (trainX[:2], trainY[:2]), (testX[:2], testY[:2] )
 
 trainX = trainX.astype('float32')
-# trainX = (trainX - trainX.mean(axis=0)) / (trainX.std(axis=0))
+
 trainX = trainX/255
 testX = testX.astype('float32')
-# testX = (testX - testX.mean(axis=0)) / (testX.std(axis=0))
+
 testX = testX/255
 
-trainY = kutils.to_categorical(trainY)
-testY = kutils.to_categorical(testY)
+trainY = kutils.to_categorical(trainY, num_classes = hp['classes'])
+testY = kutils.to_categorical(testY, num_classes = hp['classes'])
 print("Image format:",K.image_data_format())
 
 #testY = testY.astype(np.int64)
@@ -206,12 +206,13 @@ for optimizer in optim_array:
     #model(dummy_x)
     #print(model(dummy_x).shape)
     
-    filepath = 'model_'+optimizer+'.h5'
+    filepath = 'model_'+optimizer+'.h5'##################
+    #filepat = 'model_'+optimizer+'_loaded.h5'##############
 
     if pretrained:
         model = load_model(filepath, model)
         model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
-    
+        
     else :
         model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy'], global_step=tf.train.get_global_step())
         csv_logger = CSVLogger(logfile, append=True, separator=';')
@@ -222,33 +223,51 @@ for optimizer in optim_array:
     scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
     print("Final test loss and accuracy:", scores)
     
-    save_model(filepath, model)
+    save_model(filepath, model)##############
     f.close()
 
 
 
-if (pretrained==False):
-    #train plot      
+if not pretrained:
+
     plt.figure(1)
     for optimizer in optim_array:
         op = optim_params[optimizer]
-        train_loss = history_resnet[optimizer].history['loss']
+        train_loss = history[optimizer].history['loss']
         epoch_count = range(1, len(train_loss) + 1)
         plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
     plt.legend(optim_array)
     plt.xlabel('Epochs')
     plt.ylabel('Train Loss')
+    plt.savefig('figure_'+dataset+'_train_loss.png')
     
     #test plot
     plt.figure(2)
     for optimizer in optim_array:
         op = optim_params[optimizer]
-        test_loss = history_resnet[optimizer].history['val_loss']
-        epoch_count = range(1, len(test_loss) + 1)
-        plt.plot(epoch_count, test_loss, color=op['color'], linestyle=op['linestyle'])
+        test_error = []
+        for i in history[optimizer].history['val_acc']:
+            test_error.append(1-i)
+        epoch_count = range(1, len(test_error) + 1)
+        plt.plot(epoch_count, test_error, color=op['color'], linestyle=op['linestyle'])
     plt.legend(optim_array)
     plt.xlabel('Epochs')
     plt.ylabel('Test Error')
     
-    #plt.show()
-    plt.savefig('figure_'+dataset+'.png')
+    # plt.show()
+    plt.savefig('figure_'+dataset+'_test_error_top_1.png')
+    
+    #test plot
+    plt.figure(3)
+    for optimizer in optim_array:
+        op = optim_params[optimizer]
+        test_error = []
+        for i in history[optimizer].history['val_top_k_categorical_accuracy']:
+            test_error.append(1-i)
+        epoch_count = range(1, len(test_error) + 1)
+        plt.plot(epoch_count, test_error, color=op['color'], linestyle=op['linestyle'])
+    plt.legend(optim_array)
+    plt.xlabel('Epochs')
+    plt.ylabel('Test Error')
+    
+    plt.savefig('figure_'+dataset+'_test_error_top_5.png')
