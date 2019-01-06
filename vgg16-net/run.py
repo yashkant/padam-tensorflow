@@ -171,7 +171,7 @@ for optimizer in optim_array:
         model = VGG('VGG16', num_classes, op['weight_decay'])
     else:
         model = VGG('VGG16', num_classes, 0)
- 
+
     model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 
     logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
