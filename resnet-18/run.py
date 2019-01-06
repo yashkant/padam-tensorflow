@@ -24,9 +24,7 @@ print(sys.path)
 from padam import Padam
 from amsgrad import AMSGrad
 
-dataset = 'cifar10'     
-continue_training = True # Flag to continue training        
-continue_epoch = 150
+dataset = 'cifar100'     
 
 # Model is saved is 'model_{optim}_{dataset}_epochs{X}.h5' where X = continue_epoch 28  dataset = 'cifar100'
 # Csv file is saved as 'log_{optim}_{dataset}.h5'
@@ -96,7 +94,7 @@ hyperparameters = {
 optim_params = {
     'padam': {
         'weight_decay': 0.0005,
-        'lr': 0.1/1000,
+        'lr': 0.1,
         'p': 0.125,
         'b1': 0.9,
         'b2': 0.999,
@@ -105,7 +103,7 @@ optim_params = {
     },
     'adam': {
         'weight_decay': 0.0001,
-        'lr': 0.001/1000,
+        'lr': 0.001,
         'b1': 0.9,
         'b2': 0.99,
         'color': 'orange',
@@ -113,7 +111,7 @@ optim_params = {
     },
     'adamw': {
         'weight_decay': 0.025,
-        'lr': 0.001/1000,
+        'lr': 0.001,
         'b1': 0.9,
         'b2': 0.99,
         'color': 'magenta',
@@ -121,7 +119,7 @@ optim_params = {
     },
     'amsgrad': {
         'weight_decay': 0.0001,
-        'lr': 0.001/1000,
+        'lr': 0.001,
         'b1': 0.9,
         'b2': 0.99,
         'color' : 'darkgreen',
@@ -129,7 +127,7 @@ optim_params = {
     },
     'sgd': {
         'weight_decay': 0.0005,
-        'lr': 0.1/1000,
+        'lr': 0.1,
         'm': 0.9,
         'color': 'blue',
         'linestyle':'-'
@@ -160,63 +158,70 @@ optim_array = ['amsgrad', 'sgd', 'adam', 'padam']
 
 history = {}
 
-for optimizer in optim_array:
-
-    # logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
-    print('-'*40, optimizer, '-'*40)
-
-
-    op = optim_params[optimizer]
-
-    if optimizer == 'adamw' and dataset=='imagenet':
-        op['weight_decay'] = 0.05 
-
-    if optimizer is not 'adamw':
-        model = Resnet(data_format='channels_last', classes=hp['classes'], wt_decay = op['weight_decay'])
+for i in range(4):
+    if(i != 0):
+        continue_training = True # Flag to continue training   
+        continue_epoch = (i+1)*50
     else:
-        model = Resnet(data_format='channels_last', classes=hp['classes'], wt_decay  = 0)
-    
-    model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
+        continue_training = False
+        
+    for optimizer in optim_array:
 
-    learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
-                                       hp['decay_after']*train_size, 0.1, staircase=True)
-
-    logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
-
-    if(continue_training):
-        load_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch)+'.h5'
-        save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch+epochs)+'.h5'
-        model = load_model(load_model_filepath, model)
-    else:
-        save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(epochs)+'.h5'
+        # logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
+        print('-'*40, optimizer, '-'*40)
 
 
-    if optimizer == 'padam':
-        optim = Padam(learning_rate=learning_rate, p=op['p'], beta1=op['b1'], beta2=op['b2'])
-    elif optimizer == 'adam':
-        optim = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
-    elif optimizer == 'adamw':
-        adamw = tf.contrib.opt.extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
-        optim = adamw(weight_decay=op['weight_decay'], learning_rate=learning_rate,  beta1=op['b1'], beta2=op['b2'])
-    elif optimizer == 'amsgrad':
-        optim = AMSGrad(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
-    elif optimizer == 'sgd':
-        optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
+        op = optim_params[optimizer]
+
+        if optimizer == 'adamw' and dataset=='imagenet':
+            op['weight_decay'] = 0.05 
+
+        if optimizer is not 'adamw':
+            model = Resnet(data_format='channels_last', classes=hp['classes'], wt_decay = op['weight_decay'])
+        else:
+            model = Resnet(data_format='channels_last', classes=hp['classes'], wt_decay  = 0)
+
+        model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
+
+        learning_rate = tf.train.exponential_decay(op['lr'], tf.train.get_global_step() * batch_size,
+                                           hp['decay_after']*train_size, 0.1, staircase=True)
+
+        logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
+
+        if(continue_training):
+            load_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch)+'.h5'
+            save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch+epochs)+'.h5'
+            model = load_model(load_model_filepath, model)
+        else:
+            save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(epochs)+'.h5'
 
 
-    model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy', 'top_k_categorical_accuracy'], global_step=tf.train.get_global_step())
+        if optimizer == 'padam':
+            optim = Padam(learning_rate=learning_rate, p=op['p'], beta1=op['b1'], beta2=op['b2'])
+        elif optimizer == 'adam':
+            optim = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
+        elif optimizer == 'adamw':
+            adamw = tf.contrib.opt.extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
+            optim = adamw(weight_decay=op['weight_decay'], learning_rate=learning_rate,  beta1=op['b1'], beta2=op['b2'])
+        elif optimizer == 'amsgrad':
+            optim = AMSGrad(learning_rate=learning_rate, beta1=op['b1'], beta2=op['b2'])
+        elif optimizer == 'sgd':
+            optim = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=op['m'])
 
-    csv_logger = CSVLogger(logfile, append=True, separator=';')
 
-    history[optimizer] = model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
-                                 validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1, callbacks = [csv_logger])
+        model.compile(optimizer=optim, loss='categorical_crossentropy', metrics=['accuracy', 'top_k_categorical_accuracy'], global_step=tf.train.get_global_step())
 
-    scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
+        csv_logger = CSVLogger(logfile, append=True, separator=';')
 
-    print("Final test loss and accuracy:", scores)
-    #filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
-    save_model(save_model_filepath, model)
-    #f.close()
+        history[optimizer] = model.fit_generator(datagen_train.flow(trainX, trainY, batch_size = batch_size), epochs = epochs, 
+                                     validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1, callbacks = [csv_logger])
+
+        scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
+
+        print("Final test loss and accuracy:", scores)
+        #filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
+        save_model(save_model_filepath, model)
+        #f.close()
 
 #train plot
 plt.figure(1)
