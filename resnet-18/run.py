@@ -26,7 +26,7 @@ from amsgrad import AMSGrad
 
 dataset = 'cifar10'     
 continue_training = True # Flag to continue training        
-continue_epoch = 30
+continue_epoch = 60
 
 # Model is saved is 'model_{optim}_{dataset}_epochs{X}.h5' where X = continue_epoch 28  dataset = 'cifar100'
 # Csv file is saved as 'log_{optim}_{dataset}.h5'
@@ -96,7 +96,7 @@ hyperparameters = {
 optim_params = {
     'padam': {
         'weight_decay': 0.0005,
-        'lr': 0.1/10,
+        'lr': 0.1/100,
         'p': 0.125,
         'b1': 0.9,
         'b2': 0.999,
@@ -105,7 +105,7 @@ optim_params = {
     },
     'adam': {
         'weight_decay': 0.0001,
-        'lr': 0.001/10,
+        'lr': 0.001/100,
         'b1': 0.9,
         'b2': 0.99,
         'color': 'orange',
@@ -113,7 +113,7 @@ optim_params = {
     },
     'adamw': {
         'weight_decay': 0.025,
-        'lr': 0.001/10,
+        'lr': 0.001/100,
         'b1': 0.9,
         'b2': 0.99,
         'color': 'magenta',
@@ -121,7 +121,7 @@ optim_params = {
     },
     'amsgrad': {
         'weight_decay': 0.0001,
-        'lr': 0.001/10,
+        'lr': 0.001/100,
         'b1': 0.9,
         'b2': 0.99,
         'color' : 'darkgreen',
@@ -129,7 +129,7 @@ optim_params = {
     },
     'sgd': {
         'weight_decay': 0.0005,
-        'lr': 0.1/10,
+        'lr': 0.1/100,
         'm': 0.9,
         'color': 'blue',
         'linestyle':'-'
