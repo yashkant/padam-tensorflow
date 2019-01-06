@@ -172,6 +172,8 @@ for i in range(4):
 
 
         op = optim_params[optimizer]
+        op['lr'] = op['lr']/(10**i)
+        
 
         if optimizer == 'adamw' and dataset=='imagenet':
             op['weight_decay'] = 0.05 
