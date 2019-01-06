@@ -17,6 +17,9 @@ from keras.callbacks import ModelCheckpoint, CSVLogger
 from keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 import h5py
+from keras.utils import plot_model
+
+
 
 sys.path.append(os.path.dirname(os.getcwd()))
 sys.path.append(os.getcwd())
@@ -26,8 +29,8 @@ from padam import Padam
 from amsgrad import AMSGrad
 
 dataset = 'cifar10'
-continue_training = True # Flag to continue training 
-continue_epoch = 50
+continue_training = True  # Flag to continue training 
+continue_epoch = 150
 
 # Model is saved is 'model_{optim}_{dataset}_epochs{X}.h5' where X = continue_epoch
 # Csv file is saved as 'log_{optim}_{dataset}.h5'
@@ -74,13 +77,13 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch':2,
+        'epoch':50,
         'batch_size': 128,
         'decay_after': 50,
         'classes': 10
     },
     'cifar100': {
-        'epoch': 200,
+        'epoch': 50,
         'batch_size': 128,
         'decay_after': 50,
         'classes': 100 
@@ -95,7 +98,7 @@ hyperparameters = {
 optim_params = {
     'padam': {
         'weight_decay': 0.0005,
-        'lr': 0.1,
+        'lr': 0.1/1000,
         'p': 0.125,
         'b1': 0.9,
         'b2': 0.999,
@@ -104,7 +107,7 @@ optim_params = {
     },
     'adam': {
         'weight_decay': 0.0001,
-        'lr': 0.001,
+        'lr': 0.001/1000,
         'b1': 0.9,
         'b2': 0.99,
         'color': 'orange',
@@ -112,7 +115,7 @@ optim_params = {
     },
     'adamw': {
         'weight_decay': 0.025,
-        'lr': 0.001,
+        'lr': 0.001/1000,
         'b1': 0.9,
         'b2': 0.99,
         'color': 'magenta',
@@ -120,7 +123,7 @@ optim_params = {
     },
     'amsgrad': {
         'weight_decay': 0.0001,
-        'lr': 0.001,
+        'lr': 0.001/1000,
         'b1': 0.9,
         'b2': 0.99,
         'color' : 'darkgreen',
@@ -128,7 +131,7 @@ optim_params = {
     },
     'sgd': {
         'weight_decay': 0.0005,
-        'lr': 0.1,
+        'lr': 0.1/1000,
         'm': 0.9,
         'color': 'blue',
         'linestyle':'-'
@@ -153,7 +156,7 @@ tf.train.create_global_step()
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
 
-optim_array = ['amsgrad', 'sgd'] #'padam', 'adam', 'adamw']
+optim_array = ['amsgrad', 'sgd', 'padam', 'adam']
 
 
 
@@ -173,6 +176,7 @@ for optimizer in optim_array:
         model = WRNModel(depth=16, multiplier=4, wd = 0, classes = hp['classes'])
 
     model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
+    # plot_model(model, to_file='model.png')
 
     logfile = 'log_'+optimizer+ '_' + dataset +'.csv'
 
@@ -206,7 +210,7 @@ for optimizer in optim_array:
                                                                  validation_data = datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1, callbacks = [csv_logger])
     scores = model.evaluate_generator(datagen_test.flow(testX, testY, batch_size = batch_size), verbose=1)
     print("Final test loss and accuracy:", scores)
-    save_model(filepath, model)
+    save_model(save_model_filepath, model)
     # f.close()
 
 
