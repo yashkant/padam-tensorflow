@@ -154,10 +154,10 @@ optim_array = ['padam', 'adam','amsgrad', 'sgd']
 
 history = {}
 
-for i in range(4):
+for i in range(1, 4):
     if(i != 0):
         continue_training = True # Flag to continue training   
-        continue_epoch = (i+1)*50
+        continue_epoch = (i)*50
     else:
         continue_training = False
 
