@@ -24,7 +24,7 @@ print(sys.path)
 from padam import Padam
 from amsgrad import AMSGrad
 
-dataset = 'cifar10'     
+dataset = 'cifar100'     
 
 
 # Model is saved is 'model_{optim}_{dataset}_epochs{X}.h5' where X = continue_epoch 28  dataset = 'cifar100'
@@ -194,5 +194,4 @@ for p in p_values:
 
         print("Final test loss and accuracy:", scores)
         #filepath = 'model_'+optimizer+'_'  + dataset + '.h5'
-        save_model(save_model_filepath, model)
         #f.close()
