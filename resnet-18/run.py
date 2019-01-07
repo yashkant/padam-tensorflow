@@ -159,20 +159,20 @@ p_values = [0.25, 0.125, 0.0625]
 
 history = {}
 
-for i in range(3):
+for i in range(1, 3):
     if(i != 0):
         continue_training = True # Flag to continue training   
-        continue_epoch = (i+1)*30
+        continue_epoch = (i)*30
     else:
         continue_training = False
     
     for optimizer in optim_array:
         for p_value in p_values: 
             print('-'*40, optimizer, '-'*40)
+            op = optim_params[optimizer]
             
             op['lr'] = op['lr']/(10**i)
 
-            op = optim_params[optimizer]
 
             if optimizer == 'adamw' and dataset=='imagenet':
                 op['weight_decay'] = 0.05 
