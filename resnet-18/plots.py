@@ -81,4 +81,4 @@ for param in parameter:
     plt.ylabel(label[param])
     plt.ylim(top=y_lim)
     #plt.show()
-    plt.savefig('figure_'+dataset+'_'+label[param]+'.png')
+    plt.savefig('figure_'+dataset+'_'+label[param]+'.pdf')
