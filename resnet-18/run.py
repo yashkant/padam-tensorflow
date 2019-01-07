@@ -79,7 +79,7 @@ hyperparameters = {
         'classes':10
     },
     'cifar100': {
-        'epoch': 200,
+        'epoch': 50,
         'batch_size': 128,
         'decay_after': 50,
         'classes':100  
@@ -158,10 +158,10 @@ optim_array = ['amsgrad', 'sgd', 'adam', 'padam']
 
 history = {}
 
-for i in range(4):
+for i in range(2):
     if(i != 0):
         continue_training = True # Flag to continue training   
-        continue_epoch = (i+1)*50
+        continue_epoch = (i)*50
     else:
         continue_training = False
         
