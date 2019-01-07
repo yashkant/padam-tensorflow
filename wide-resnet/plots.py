@@ -70,7 +70,7 @@ for param in parameter:
         op = optim_params[optimizer]
         data[optimizer].plot(color=op['color'], linestyle=op['linestyle'])
     if param=='loss':
-        y_lim = 5
+        y_lim = 1.6
     elif param == 'val_acc':
         y_lim = 0.9
     else:
