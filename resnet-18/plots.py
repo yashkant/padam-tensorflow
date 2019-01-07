@@ -44,7 +44,7 @@ optim_params = {
     }
 }
 
-parameter = 'loss' #loss;val_acc;val_top_k_categorical_accuracy
+parameter = ['loss'] #loss;val_acc;val_top_k_categorical_accuracy
 optimizers = ['adam', 'adamw', 'sgd', 'amsgrad', 'padam']
 dataset = 'cifar10'
 files = []
@@ -53,7 +53,7 @@ label = {'loss':'Train Loss', 'val_acc':'Test Error', 'val_top_k_categorical_acc
 
 for optim in optimizers:
     files.append('log_' + optim + '_'+ dataset + '.csv')
-    
+
 for param in parameter:        
     
     data = pd.DataFrame()
