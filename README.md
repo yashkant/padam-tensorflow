@@ -10,8 +10,8 @@ Setup Dependencies
 The recommended version for running the experiments is Python3.
 
 These experiments have been written in `tensorflow's eager mode` so installing the dependencies is a must to run the code:
-1. Follow the installation guide on [Tensorflow Homepage][4] for installing Tensorflow-GPU or Tensorflow-CPU. 
-2. Follow instructions outlined on [Keras Homepage][5] for installing Keras.
+1. Follow the installation guide on [Tensorflow Homepage][1] for installing Tensorflow-GPU or Tensorflow-CPU. 
+2. Follow instructions outlined on [Keras Homepage][2] for installing Keras.
 
 Run a vanilla experiment using the following command at the directory root folder. 
 ```bash 
@@ -29,10 +29,10 @@ The skeletal overview of the project is as follows:
 │   └── model.py     # VGGNet model
 ├── resnet18/
 │   ├── run.py # A script to run the experiments over ResNet architechture
-│   └── model.py     # Resnet 18 model
+│   └── resnet.py     # Resnet 18 model
 ├── wide-resnet/
 │   ├── run.py        #A script to run the experiments over ResNet architechture
-│   ├── model.py    # Wide Resnet 18 model
+│   ├── wide_resnet.py    # Wide Resnet 18 model
 .
 folders and files below will be generated after you run the experiment in each model directory
 .
@@ -48,7 +48,14 @@ These dictionary contains all the hyperparameter for the each optimizers ie. Ada
 Results
 ---
 We were sucessful in reproducing the results as predicted in the paper for Cifar-10 and Cifar-100.
+<img src="train_loss.png" width="425"/> <img src="test_error.png" width="425"/> 
+<p align=center>Results on the CIFAR-10 dataset for VGGNet.</p>
 
-[4]:https://www.tensorflow.org/install/
-[5]:https://keras.io/#installation
+Contributors
+---
+- [@pandeykartikey](https://github.com/pandeykartikey)
+- [@harshalmittal4](https://github.com/harshalmittal4)
+- [@yashkant](http://github.com/yashkant)
 
+[1]: https://www.tensorflow.org/install/
+[2]:https://keras.io/#installation
