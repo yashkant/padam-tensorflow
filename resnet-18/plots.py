@@ -53,24 +53,26 @@ label = {'loss':'Train Loss', 'val_acc':'Test Error', 'val_top_k_categorical_acc
 
 for optim in optimizers:
     files.append('log_' + optim + '_'+ dataset + '.csv')
-
-data = pd.DataFrame()
-
-for f in range(len(files)):
-    df = pd.read_csv(files[f], delimiter = ';')
-    data[optimizers[f]] = df[parameter]
-
-if parameter == 'val_acc' or parameter == 'val_top_k_categorical_accuracy':
-    data = 1-data
     
-plt.figure()
-for optimizer in optimizers:
-    op = optim_params[optimizer]
-    data[optimizer].plot(color=op['color'], linestyle=op['linestyle'])
-
-plt.legend(loc='best')
-plt.xlabel('Epochs')
-plt.ylabel(label[parameter])
-plt.ylim(top=1)
-#plt.show()
-plt.savefig('figure_'+dataset+'_'+label[parameter]+'.png')
+for param in parameter:        
+    
+    data = pd.DataFrame()
+    
+    for f in range(len(files)):
+        df = pd.read_csv(files[f], delimiter = ';')
+        data[optimizers[f]] = df[param]
+    
+    if param == 'val_acc' or param == 'val_top_k_categorical_accuracy':
+        data = 1-data
+        
+    plt.figure()
+    for optimizer in optimizers:
+        op = optim_params[optimizer]
+        data[optimizer].plot(color=op['color'], linestyle=op['linestyle'])
+    
+    plt.legend(loc='best')
+    plt.xlabel('Epochs')
+    plt.ylabel(label[param])
+    plt.ylim(top=1)
+    #plt.show()
+    plt.savefig('figure_'+dataset+'_'+label[param]+'.png')
