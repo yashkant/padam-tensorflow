@@ -44,8 +44,8 @@ optim_params = {
     }
 }
 
-parameter = ['loss'] #loss;val_acc;val_top_k_categorical_accuracy
-optimizers = ['adam', 'adamw', 'sgd', 'amsgrad', 'padam']
+parameter = ['loss','val_acc','val_top_k_categorical_accuracy'] #loss;val_acc;val_top_k_categorical_accuracy
+optimizers = ['adam', 'sgd', 'amsgrad', 'padam']
 dataset = 'cifar10'
 files = []
 
@@ -69,10 +69,16 @@ for param in parameter:
     for optimizer in optimizers:
         op = optim_params[optimizer]
         data[optimizer].plot(color=op['color'], linestyle=op['linestyle'])
-    
+    if param=='loss':
+        y_lim = 1.5
+    elif param == 'val_acc':
+        y_lim = 0.7
+    else:
+        y_lim= 0.20
+        
     plt.legend(loc='best')
     plt.xlabel('Epochs')
     plt.ylabel(label[param])
-    plt.ylim(top=1)
+    plt.ylim(top=y_lim)
     #plt.show()
     plt.savefig('figure_'+dataset+'_'+label[param]+'.png')
