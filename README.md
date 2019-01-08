@@ -52,6 +52,8 @@ We were sucessful in reproducing the results as predicted in the paper for Cifar
 <img src="train_loss.png" width="425"/> <img src="test_error.png" width="425"/> 
 <p align=center>Results on the CIFAR-10 dataset for VGGNet.</p>
 
+You can find our report for the reproducibility challenge [here][3].
+
 Contributors
 ---
 - [@pandeykartikey](https://github.com/pandeykartikey)
@@ -60,4 +62,4 @@ Contributors
 
 [1]: https://www.tensorflow.org/install/
 [2]:https://keras.io/#installation
-
+[3]:Report.pdf
