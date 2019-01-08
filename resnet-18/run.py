@@ -26,10 +26,6 @@ from amsgrad import AMSGrad
 
 dataset = 'cifar100'     
 
-<<<<<<< HEAD
-
-=======
->>>>>>> ed837c8c9448174df995ac1f05d6c0a73b42c576
 # Model is saved is 'model_{optim}_{dataset}_epochs{X}.h5' where X = continue_epoch 28  dataset = 'cifar100'
 # Csv file is saved as 'log_{optim}_{dataset}.h5'
 
@@ -83,11 +79,7 @@ hyperparameters = {
         'classes':10
     },
     'cifar100': {
-<<<<<<< HEAD
         'epoch': 30,
-=======
-        'epoch': 50,
->>>>>>> ed837c8c9448174df995ac1f05d6c0a73b42c576
         'batch_size': 128,
         'decay_after': 50,
         'classes':100  

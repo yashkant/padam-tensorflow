@@ -1,6 +1,7 @@
 # Padam: Closing the Generalization gap of adaptive gradient methods in training deep neural networks
-Link to paper : [Padam: Closing the Generalization gap of adaptive gradient methods in training deep neural networks][4]
-Our [Report][3] 
+Link to paper : [Padam: Closing the Generalization gap of adaptive gradient methods in training deep neural networks][4]<br/>
+<br/>
+You can find our report for the reproducibility challenge [here][3].
 
 Introduction
 ---
@@ -50,22 +51,19 @@ These dictionary contains all the hyperparameter for the each optimizers ie. Ada
 
 
 # Experiments
----
-We carry out the experiments to compare the performance of four optimizers -  Adam, Amsgrad, SGD Momentum and the proposed algorithm Padam, on 3 modern deep learning architectures ResNet18, WideResNet18 and VGGNet16, over CIFAR-10 and CIFAR-100 datasets. All the experiments on CIFAR-10 have been run for 200 epochs, using categorical cross entropy loss function. Here, we show the results for VGGNet16, rest of the results have been included in the report.
+We carry out the experiments to compare the performance of four optimizers -  Adam, Amsgrad, SGD Momentum and the proposed algorithm Padam, on 3 modern deep learning architectures ResNet18, WideResNet18 and VGGNet16, over CIFAR-10 and CIFAR-100 datasets. All the experiments on CIFAR-10 have been run for 200 epochs, using categorical cross entropy loss function.
 
 Results
 ---
-We were sucessful in reproducing the results as predicted in the paper for Cifar-10 and Cifar-100. It is observed that Padam indeed generalizes better than other adaptive gradient method, although it does have a few shortcomings as mentioned in our report.
+We were sucessful in reproducing the results as predicted in the paper for Cifar-10 and Cifar-100. It is observed that Padam indeed generalizes better than other adaptive gradient method, although it does have a few shortcomings as mentioned in our report. Here, we show the results for VGGNet16, rest of the results have been included in the [report][3].
 
 <img src="train_loss.png" width="425"/> <img src="test_error.png" width="425"/> 
 <p align=center>Results on the CIFAR-10 dataset for VGGNet.</p>
 
-You can find our report for the reproducibility challenge [here][3].
-
 Contributors
 ---
-- [@pandeykartikey](https://github.com/pandeykartikey)
 - [@harshalmittal4](https://github.com/harshalmittal4)
+- [@pandeykartikey](https://github.com/pandeykartikey)
 - [@yashkant](http://github.com/yashkant)
 
 [1]:https://www.tensorflow.org/install/
