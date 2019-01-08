@@ -1,7 +1,10 @@
 # Padam: Closing the Generalization gap of adaptive gradient methods in training deep neural networks
+Link to paper : [Padam: Closing the Generalization gap of adaptive gradient methods in training deep neural networks][4]
+Our [Report][3] 
 
 Introduction
 ---
+
 Adaptive gradient methods such as Adam, Adagrad, Adadelta, RMSProp, Nadam, Adamw, were proposed over SGD with momentum for solving optimization of stochastic objectives in high-dimensions. Amsgrad was recently proposed as an improvement to Adam to fix convergence issues in the latter. These methods provide benefits such as faster convergence and insensitivity towards hyperparameter selection i.e. they are demonstrated to work with little tuning. On the downside, these adaptive methods have shown poor empirical performance and lesser generalization as compared to SGD. The authors try to address this problem by designing a new optimization algorithm that bridges the gap between the space of Adaptive Gradient algorithms and SGD with momentum. With this method a new tunable hyperparameter called partially adaptive parameter \textit{p} is introduced that varies between [0, 0.5].
 
 
@@ -45,9 +48,14 @@ Defining Experiment Configuration
 You can set the experiment configuration by changing the dictionary in the `run.py` files. 
 These dictionary contains all the hyperparameter for the each optimizers ie. Adam, Amsgrad, SGD Momentum and Padam.
 
+
+# Experiments
+---
+We carry out the experiments to compare the performance of four optimizers -  Adam, Amsgrad, SGD Momentum and the proposed algorithm Padam, on 3 modern deep learning architectures ResNet18, WideResNet18 and VGGNet16, over CIFAR-10 and CIFAR-100 datasets. All the experiments on CIFAR-10 have been run for 200 epochs, using categorical cross entropy loss function. Here, we show the results for VGGNet16, rest of the results have been included in the report.
+
 Results
 ---
-We were sucessful in reproducing the results as predicted in the paper for Cifar-10 and Cifar-100.
+We were sucessful in reproducing the results as predicted in the paper for Cifar-10 and Cifar-100. It is observed that Padam indeed generalizes better than other adaptive gradient method, although it does have a few shortcomings as mentioned in our report.
 
 <img src="train_loss.png" width="425"/> <img src="test_error.png" width="425"/> 
 <p align=center>Results on the CIFAR-10 dataset for VGGNet.</p>
@@ -60,6 +68,7 @@ Contributors
 - [@harshalmittal4](https://github.com/harshalmittal4)
 - [@yashkant](http://github.com/yashkant)
 
-[1]: https://www.tensorflow.org/install/
+[1]:https://www.tensorflow.org/install/
 [2]:https://keras.io/#installation
 [3]:Report.pdf
+[4]:https://openreview.net/pdf?id=BJll6o09tm
