@@ -52,7 +52,7 @@ class WRNModel(tf.keras.Model):
         model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
         model_y.append(tf.keras.layers.Conv2D(16 * k, (3, 3), padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
-        model_y.append(tf.keras.layers.Activation('relu'))
+        # model_y.append(tf.keras.layers.Activation('relu'))
 
         return out_channels, [model_x, model_y]
 
@@ -79,7 +79,7 @@ class WRNModel(tf.keras.Model):
         model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
         model_y.append(tf.keras.layers.Conv2D(32 * k, (3, 3), strides = 1, padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
-        model_y.append(tf.keras.layers.Activation('relu'))
+        # model_y.append(tf.keras.layers.Activation('relu'))
 
         return out_channels, [model_x, model_y]
 
@@ -106,7 +106,7 @@ class WRNModel(tf.keras.Model):
         model_y.append(tf.keras.layers.ZeroPadding2D(padding=1))
         model_y.append(tf.keras.layers.Conv2D(64 * k, (3, 3), strides = 1, padding="VALID", kernel_initializer = self.conv_w_init, kernel_regularizer=self.l2_reg))
         model_y.append(tf.keras.layers.BatchNormalization(axis=channel_axis))
-        model_y.append(tf.keras.layers.Activation('relu'))
+        # model_y.append(tf.keras.layers.Activation('relu'))
 
 
         return out_channels, [model_x, model_y]
@@ -226,7 +226,8 @@ class WRNModel(tf.keras.Model):
                 temp_paths.append(path_output)
 
             if(len(temp_paths) > 1):
-                prev_blk_output = tf.keras.layers.Add()(temp_paths) 
+                prev_blk_output = tf.keras.layers.Add()(temp_paths)
+                prev_blk_output = tf.keras.layers.Activation('relu')(prev_blk_output)
             else:
                 prev_blk_output = temp_paths[0]
 
