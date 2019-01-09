@@ -175,9 +175,9 @@ for i in range(4):
             op['weight_decay'] = 0.05 
 
         if optimizer is not 'adamw':
-            model = VGG('VGG16', num_classes, op['weight_decay'])
+            model = WRNModel(depth=16,  multiplier=4, wd = op['weight_decay'], classes = hp['classes'])
         else:
-            model = VGG('VGG16', num_classes, 0)
+            model = WRNModel(depth=16,  multiplier=4, wd = 0, classes = hp['classes'])
 
         model._set_inputs(tf.zeros((batch_size, 32, 32, 3)))
 
