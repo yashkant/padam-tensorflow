@@ -148,7 +148,6 @@ testX = testX/255
 trainY = kutils.to_categorical(trainY)
 testY = kutils.to_categorical(testY)
 tf.train.create_global_step()
-# (trainX, trainY), (testX, testY) = (trainX[:100], trainY[:100]), (testX[:100], testY[:100])
 
 datagen_train = ImageDataGenerator(preprocessing_function=preprocess,horizontal_flip=True)
 datagen_test = ImageDataGenerator(preprocessing_function=normalize)
@@ -158,7 +157,8 @@ optim_array = ['amsgrad', 'sgd', 'adam', 'padam']
 
 history = {}
 
-for i in range(2):
+for i in range(4):
+    
     if(i != 0):
         continue_training = True # Flag to continue training   
         continue_epoch = (i)*50
@@ -216,46 +216,3 @@ for i in range(2):
 
         print("Final test loss and accuracy:", scores)
         save_model(save_model_filepath, model)
-
-#train plot
-plt.figure(1)
-for optimizer in optim_array:
-    op = optim_params[optimizer]
-    train_loss = history[optimizer].history['loss']
-    epoch_count = range(1, len(train_loss) + 1)
-    plt.plot(epoch_count, train_loss, color=op['color'], linestyle=op['linestyle'])
-plt.legend(optim_array)
-plt.xlabel('Epochs')
-plt.ylabel('Train Loss')
-plt.savefig('figure_'+dataset+'_train_loss.png')
-
-#test plot
-plt.figure(2)
-for optimizer in optim_array:
-    op = optim_params[optimizer]
-    test_error = []
-    for i in history[optimizer].history['val_acc']:
-        test_error.append(1-i)
-    epoch_count = range(1, len(test_error) + 1)
-    plt.plot(epoch_count, test_error, color=op['color'], linestyle=op['linestyle'])
-plt.legend(optim_array)
-plt.xlabel('Epochs')
-plt.ylabel('Test Error')
-
-# plt.show()
-plt.savefig('figure_'+dataset+'_test_error_top_1.png')
-
-#test plot
-plt.figure(3)
-for optimizer in optim_array:
-    op = optim_params[optimizer]
-    test_error = []
-    for i in history[optimizer].history['val_top_k_categorical_accuracy']:
-        test_error.append(1-i)
-    epoch_count = range(1, len(test_error) + 1)
-    plt.plot(epoch_count, test_error, color=op['color'], linestyle=op['linestyle'])
-plt.legend(optim_array)
-plt.xlabel('Epochs')
-plt.ylabel('Test Error')
-
-plt.savefig('figure_'+dataset+'_test_error_top_5.png')
