@@ -51,7 +51,7 @@ These dictionary contains all the hyperparameter for the each optimizers ie. Ada
 
 
 # Experiments
-We carry out the experiments to compare the performance of four optimizers -  Adam, Amsgrad, SGD Momentum and the proposed algorithm Padam, on 3 modern deep learning architectures ResNet18, WideResNet18 and VGGNet16, over CIFAR-10 and CIFAR-100 datasets. All the experiments on CIFAR-10 have been run for 200 epochs, using categorical cross entropy loss function.
+We carry out the experiments to compare the performance of four optimizers -  Adam, Amsgrad, SGD Momentum and the proposed algorithm Padam, on 3 modern deep learning architectures ResNet18, WideResNet18 and VGGNet16, over CIFAR-10 and CIFAR-100 datasets. All the experiments have been run for 200 epochs, using categorical cross entropy loss function.
 
 Results
 ---
