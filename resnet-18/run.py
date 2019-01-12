@@ -73,13 +73,13 @@ def load_model(filepath, model):
 
 hyperparameters = {
     'cifar10': {
-        'epoch': 30,
+        'epoch': 50,
         'batch_size': 128,
         'decay_after': 50,
         'classes':10
     },
     'cifar100': {
-        'epoch': 30,
+        'epoch': 50,
         'batch_size': 128,
         'decay_after': 50,
         'classes':100  
@@ -157,13 +157,16 @@ optim_array = ['amsgrad', 'sgd', 'adam', 'padam']
 
 history = {}
 
-for i in range(4):
+for i in range(0, 3):
     
     if(i != 0):
         continue_training = True # Flag to continue training   
-        continue_epoch = (i)*50
+        continue_epoch = (i+1)*50
+        epochs = hp['epoch'] 
     else:
-        continue_training = False
+        continue_training = True
+        continue_epoch = 70
+        epochs = 30
         
     for optimizer in optim_array:
 
@@ -190,6 +193,8 @@ for i in range(4):
             load_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch)+'.h5'
             save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(continue_epoch+epochs)+'.h5'
             model = load_model(load_model_filepath, model)
+            print("Load Model:", load_model_filepath)
+            print("Save Model:", save_model_filepath)
         else:
             save_model_filepath = 'model_'+optimizer+'_'  + dataset + '_epochs'+ str(epochs)+'.h5'
 
