@@ -50,7 +50,7 @@ You can set the experiment configuration by changing the dictionary in the `run.
 These dictionary contains all the hyperparameter for the each optimizers ie. Adam, Amsgrad, SGD Momentum and Padam.
 
 
-# Experiments
+## Experiments
 We carry out the experiments to compare the performance of four optimizers -  Adam, Amsgrad, SGD Momentum and the proposed algorithm Padam, on 3 modern deep learning architectures ResNet18, WideResNet18 and VGGNet16, over CIFAR-10 and CIFAR-100 datasets. All the experiments have been run for 200 epochs, using categorical cross entropy loss function.
 
 Results
@@ -59,6 +59,27 @@ We were sucessful in reproducing the results as predicted in the paper for Cifar
 
 <img src="train_loss.png" width="425"/> <img src="test_error.png" width="425"/> 
 <p align=center>Results on the CIFAR-10 dataset for VGGNet.</p>
+
+## References 
+
+Original work by authors:
+```bash
+@article{Padam,
+  title={Closing the Generalization Gap of Adaptive Gradient Methods in Training Deep Neural Networks},
+  author={Jinghui Chen, Quanquan Gu},
+  journal={arXiv preprint arXiv:1806.06763},
+  year={2018}
+}
+```
+If you find our work useful, please consider citing it:
+```bash
+@article{Padam-ICLR,
+  title={ICLR Reproducibility Challenge Report (Padam : Closing The Generalization Gap Of Adaptive Gradient Methods in Training Deep Neural Networks)},
+  author={Harshal Mittal, Kartikey Pandey, Yash Kant},
+  journal={arXiv preprint arXiv:1901.09878},
+  year={2019}
+}
+```
 
 Contributors
 ---
