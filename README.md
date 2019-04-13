@@ -1,7 +1,8 @@
 # Padam: Closing the Generalization gap of adaptive gradient methods in training deep neural networks
-Link to paper : [Padam: Closing the Generalization gap of adaptive gradient methods in training deep neural networks][4]<br/>
+Arxiv Link for the Original Work : [Padam: Closing the Generalization gap of adaptive gradient methods in training deep neural networks][4]<br/>
 <br/>
-You can find our report for the reproducibility challenge [here][3].
+Arxiv Link for the Reproducibility Report: [ICLR Reproducibility Challenge Report][3]
+
 
 Introduction
 ---
