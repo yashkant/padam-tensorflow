@@ -89,5 +89,5 @@ Contributors
 
 [1]:https://www.tensorflow.org/install/
 [2]:https://keras.io/#installation
-[3]:Report.pdf
+[3]:https://arxiv.org/abs/1901.09517
 [4]:https://openreview.net/pdf?id=BJll6o09tm
